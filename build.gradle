@@ -1,0 +1,106 @@
+/*
+ * Copyright (C) 2016-2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+group 'io.github.pustike'
+version '1.0.0'
+description 'A JSR-330 spec compliant dependency injection framework'
+
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+sourceCompatibility = 1.8
+
+defaultTasks('build')
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile 'javax.inject:javax.inject:1'
+    testCompile 'javax.inject:javax.inject-tck:1'
+    testCompile 'javax.servlet:javax.servlet-api:3.1.0'
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+javadoc {
+    title = "Pustike Inject ${project.version} API"
+    options.overview = "src/overview.html"
+    options.links = ["http://docs.oracle.com/javase/8/docs/api/", "http://javax-inject.github.io/javax-inject/api"]
+    exclude '**/impl/**' //exclude internal packages
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+    group = 'Publishing'
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+    group = 'Publishing'
+}
+
+artifacts {
+    archives sourcesJar, javadocJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+            /*snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }*/
+
+            pom.project {
+                name 'Pustike Inject'
+                packaging 'jar'
+                // optionally artifactId can be defined here
+                description 'A JSR-330 spec compliant dependency injection framework.'
+                url 'http://www.github.com/pustike/pustike-inject'
+                scm {
+                    connection 'scm:git@github.com:pustike/pustike-inject.git'
+                    developerConnection 'scm:git@github.com:pustike/pustike-inject.git'
+                    url 'http://www.github.com/pustike/pustike-inject'
+                }
+                licenses {
+                    license {
+                        name 'The Apache License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+                developers {
+                    developer {
+                        id pomDeveloperId
+                        name pomDeveloperName
+                    }
+                }
+            }
+        }
+    }
+}

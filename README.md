@@ -54,26 +54,28 @@ Binder collects configuration information (primarily bindings) which will be use
 Bindings are defined using EDSL(embedded domain-specific language) in plain Java with the help of following builders:  
 * **Annotated Binding Builder**: It allows to specify annotations, or annotation types as constraints, depending on which binding targets may or may not be injected.
   1. *Named Bindings*: Specifies that the binding can only be used for injection, if a field is annotated with @Named and has the given name. For ex:
-    ```
+    ```java
     // with the following binding specification
     binder.bind(Tire.class).named("spare").to(SpareTire.class);
     ...
     // This the named instance can be injected using the following annotation:
     @Inject @Named("spare") Tire spareTire; 
     ```
+
   2. *Annotated Bindings*: Specifies that the binding can only be used for injection, if a field is annotated with a qualifier Annotation of the given type. For ex: 
-    ```
-     // with the following binding specification
-     binder.bind(Seat.class).annotatedWith(Drivers.class).to(DriversSeat.class);
-     ...
-     // It can be injected using the following annotation:
-     @Inject @Drivers Seat driversSeatA;
+    ```java
+    // with the following binding specification
+    binder.bind(Seat.class).annotatedWith(Drivers.class).to(DriversSeat.class);
+    ...
+    // It can be injected using the following annotation:
+    @Inject @Drivers Seat driversSeatA;
     ```
 * **Linked Binding Builder**: It allows to specify a bindings target which is the value, that gets injected, if the binding is applied.
   1. *To Implementation*: Binds the interface to the implementation as the target which is provisioned by the injector. For ex:
-    ```
+    ```java
     binder.bind(Service.class).to(ServiceImpl.class);
     ```
+
   2. *To Provider*: Binds the interface to a provider instance which provides instances of the target. For ex:
     ```java
     binder.bind(Service.class).toProvider(new ServiceProvider());
@@ -81,16 +83,19 @@ Bindings are defined using EDSL(embedded domain-specific language) in plain Java
     // Or to a provider class which will created during injection
     binder.bind(Service.class).toProvider(ServiceProvider.class);
     ```
+
   3. *To Instance*: Specifies the binding target to be the specified instance. For ex:
     ```java
     ServiceImpl serviceImpl = new ServiceImpl();
     binder.bind(Service.class).to(serviceImpl); 
     ```
+
   4. *To Constructor*: Binds the interface to constructor of the implementation which is used create new instances by the injector. It is useful for cases where existing classes cannot be modified and it is a bit simpler than using a Provider. For ex:
     ```java
     Constructor<?> loneConstructor = ServiceImpl.class.getDeclaredConstructors()[0];
     binder.bind(Service.class).toConstructor(loneConstructor);
     ```
+
   5. *To Factory Method*: Binds the interface to the factory method which is used create new instances by the injector. It is useful for cases where existing classes cannot be modified and it is a bit simpler than using a Provider. For ex:
     ```java
     Method factoryMethod = ServiceImpl.class.getMethod("create");
@@ -107,12 +112,14 @@ Bindings are defined using EDSL(embedded domain-specific language) in plain Java
     ```java
     binder.setDefaultScope(Singleton.class);// to change the default scope to Singleton 
     ```
+  
   2. *Lazy Singleton Scope*: Instructs the Injector to lazily initialize this singleton-scoped binding, i.e. only when it's is requested or being injected.
     ```java
     binder.bind(Service.class).to(ServiceImpl.class).asLazySingleton();
     // or it can be configured using the annotation
     binder.bind(Service.class).to(ServiceImpl.class).in(Singleton.class);
     ```
+
   3. *Eager Singleton Scope*: A binding with this scope will create a single instance, immediately after the injector is configured.
     ```java
     binder.bind(Service.class).to(ServiceImpl.class).asEagerSingleton();
@@ -125,6 +132,7 @@ Custom Scopes can be created to retain the instance only in a certain context, l
   @Scope @Documented @Target(ElementType.TYPE) @Retention(RetentionPolicy.RUNTIME)
   public @interface SessionScoped { }
   ```
+
 * Implementing the Scope interface
   ```java
   public final class SessionScope implements Scope {
@@ -175,6 +183,7 @@ Custom Scopes can be created to retain the instance only in a certain context, l
      binder.bind(Service.class).to(ServiceImpl.class).in(sessionScope);
   });
   ```
+
 * Opening and closing the scope context
   ```java
   // open the session scope context on receiving the request with a http session
@@ -185,6 +194,7 @@ Custom Scopes can be created to retain the instance only in a certain context, l
       scopeContext.close();
   }
   ```
+
 ##### Binding Listener
 Binding listener is invoked after binding of the type is registered into injector. Useful for performing further configurations, such as, a MVC framework can register it as a controller if @Controller annotation is present. For ex:
 ```java

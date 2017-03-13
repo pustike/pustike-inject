@@ -23,7 +23,7 @@ import io.github.pustike.inject.bind.Module;
  * The injector is used to create objects with all their dependencies (fields and constructor/methods) injected.
  * Injector is configured with bindings specified by {@link Module modules}. These bindings are scanned to identify
  * {@link io.github.pustike.inject.bind.InjectionPoint}s and are registered with the binding key. When an instance of
- * a type or a binding key is requested, injector returns the instance by creating it and injecting all it's
+ * a type or a binding key is requested, injector returns the instance by creating it and injecting all its
  * declared dependencies.
  * <p>
  * Following bindings are present automatically:<ul>
@@ -35,7 +35,7 @@ import io.github.pustike.inject.bind.Module;
 public interface Injector {
     /**
      * Returns an instance of {@code instanceType}, if a matching binding is present, after injecting all
-     * dependencies  into it's fields and methods/constructor.
+     * dependencies  into its fields and methods/constructor.
      * @param type the requested type.
      * @param <T>  the type of instance
      * @return the created instance with all dependencies injected into fields and methods/constructor.
@@ -46,7 +46,7 @@ public interface Injector {
 
     /**
      * Returns an instance of the binding that has been registered for the given key, after injecting all
-     * dependencies  into it's fields and methods/constructor.
+     * dependencies  into its fields and methods/constructor.
      * @param key A binding key, for which a binding has been registered.
      * @param <T> the type of instance
      * @return the created instance with all dependencies injected into fields and methods/constructor.

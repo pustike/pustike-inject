@@ -18,7 +18,7 @@ package io.github.pustike.inject.bind;
 import io.github.pustike.inject.BindingKey;
 
 /**
- * Listens for new instances created by injector, invoked after it's fields and methods are injected. Useful for
+ * Listens for new instances created by injector, invoked after its fields and methods are injected. Useful for
  * performing post-injection initialization.
  */
 public interface InjectionListener {

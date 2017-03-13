@@ -70,7 +70,7 @@ final class InstanceProvider<T> implements Provider<T> {
                 // create the provider instance
                 if (providerInjectionPoint == null) {
                     providerInjectionPoint = DefaultInjectionPointLoader.createInjectionPoint(providerType);
-                }// and inject it's members first
+                }// and inject its members first
                 @SuppressWarnings("unchecked")
                 Provider<T> provider = (Provider<T>) providerInjectionPoint.injectTo(null, injector);
                 return provider.get();// return the instance from this provider

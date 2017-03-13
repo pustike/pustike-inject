@@ -36,7 +36,7 @@ import java.util.Arrays;
  */
 public abstract class AnnotationUtils {
     /**
-     * Generate a hash code for the given annotation type with it's default attribute values
+     * Generate a hash code for the given annotation type with its default attribute values
      * using the algorithm presented in the {@link Annotation#hashCode()} API docs.
      * @param annotationType the annotation type
      * @return the calculated hash code

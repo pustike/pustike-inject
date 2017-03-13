@@ -50,7 +50,7 @@ public interface Binder {
      * binder.bindScope(ThreadScoped.class, threadScope);
      * binder.bind(Service.class).to(ServiceImpl.class).in(ThreadScoped.class);
      * }</pre>
-     * This binds the Service class to it's implementation in the ThreadScope
+     * This binds the Service class to its implementation in the ThreadScope
      * @param scopeAnnotation the scope annotation type
      * @param scope           the scope instance
      */

@@ -2,7 +2,7 @@ Pustike Inject
 ==============
 Pustike Inject is a simple dependency injection framework that implements the [JSR-330](http://javax-inject.github.io/javax-inject) specification.
 
-Following are some of it's key features:
+Following are some of its key features:
 * Programmatic configuration in plain Java using EDSL similar to that of [Guice Binder](http://google.github.io/guice/api-docs/latest/javadoc/com/google/inject/Binder.html).
 * Field, Method and Constructor injections that can be Named or Annotated specifically
 * Default Scopes: Prototype, Lazy Singleton and Eager Singleton
@@ -32,7 +32,7 @@ dependencies {
 
 Injector
 -------
-Injector is a core part of the library and tracks all dependencies for all types configured by module binders. When an instance of a type or of a binding key is requested, the injector returns an instance by creating it and injecting all it's declared dependencies (fields and constructor/methods). 
+Injector is a core part of the library and tracks all dependencies for all types configured by module binders. When an instance of a type or of a binding key is requested, the injector returns an instance by creating it and injecting all its declared dependencies (fields and constructor/methods). 
 
 To create an injector, factory methods of Injectors class should be used, with bindings specified by modules and optionally with an injection point loader. And these bindings, specified by modules, are scanned to identify injection points and are registered as bindings linked to the binding key.
 
@@ -46,7 +46,7 @@ Injector injector = Injectors.create(module);
 Service service = injector.getInstance(Service.class);
 ```
 #### Module 
-A module contributes configuration information, i.e interface bindings, which will be used to create an Injector. It's configure method is called to create bindings, during injector creation.
+A module contributes configuration information, i.e interface bindings, which will be used to create an Injector. Its configure method is called to create bindings, during injector creation.
 
 #### Binder
 Binder collects configuration information (primarily bindings) which will be used to create an Injector. The Binder is passed as an argument to modules and each of them contribute their own bindings to injector using the binder.
@@ -113,7 +113,7 @@ Bindings are defined using EDSL(embedded domain-specific language) in plain Java
     binder.setDefaultScope(Singleton.class);// to change the default scope to Singleton 
     ```
   
-  2. *Lazy Singleton Scope*: Instructs the Injector to lazily initialize this singleton-scoped binding, i.e. only when it's is requested or being injected.
+  2. *Lazy Singleton Scope*: Instructs the Injector to lazily initialize this singleton-scoped binding, i.e. only when it is requested or being injected.
     ```java
     binder.bind(Service.class).to(ServiceImpl.class).asLazySingleton();
     // or it can be configured using the annotation
@@ -175,7 +175,7 @@ Custom Scopes can be created to retain the instance only in a certain context, l
   }
   ```
     
-* Binding the scope annotation to it's implementation
+* Binding the scope annotation to its implementation
   ```java
   Injector injector = Injectors.create((Module) binder -> {
      SessionScope sessionScope = new SessionScope();

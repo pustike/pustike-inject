@@ -19,8 +19,6 @@ import java.lang.annotation.Annotation;
 import java.util.Objects;
 import javax.inject.Named;
 
-import io.github.pustike.inject.utils.AnnotationUtils;
-
 /**
  * Binding key that contains an injection type and an optional qualifier annotation. It is also used to match the type
  * and qualifier annotation at the point of injection.

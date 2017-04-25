@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.pustike.inject.utils;
+package io.github.pustike.inject;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -34,7 +34,7 @@ import java.util.Arrays;
  * <p>
  * From: commons-lang/src/main/java/org/apache/commons/lang3/AnnotationUtils.java
  */
-public abstract class AnnotationUtils {
+abstract class AnnotationUtils {
     /**
      * Generate a hash code for the given annotation type with its default attribute values
      * using the algorithm presented in the {@link Annotation#hashCode()} API docs.
@@ -43,7 +43,7 @@ public abstract class AnnotationUtils {
      * @throws RuntimeException      if an {@code Exception} is encountered during annotation member access
      * @throws IllegalStateException if an annotation method invocation returns {@code null}
      */
-    public static int hashCode(Class<? extends Annotation> annotationType) {
+    static int hashCode(Class<? extends Annotation> annotationType) {
         int result = 0;
         for (Method method : annotationType.getDeclaredMethods()) {
             if (method.getParameterTypes().length != 0 || method.getReturnType() == void.class) {
@@ -73,7 +73,7 @@ public abstract class AnnotationUtils {
      * @throws RuntimeException      if an {@code Exception} is encountered during annotation member access
      * @throws IllegalStateException if an annotation method invocation returns {@code null}
      */
-    public static int hashCode(Annotation annotation) {
+    private static int hashCode(Annotation annotation) {
         int result = 0;
         Class<? extends Annotation> annotationType = annotation.annotationType();
         for (Method method : annotationType.getDeclaredMethods()) {

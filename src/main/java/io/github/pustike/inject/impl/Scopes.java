@@ -51,39 +51,48 @@ final class Scopes {
      */
     static final String EAGER_SINGLETON = "EAGER_SINGLETON";
 
+    /** A sentinel value representing null. */
+    private static final Object NULL = new Object();
+
     static Scope createSingletonScope() {
         return new Scope() {
             @Override
             public <T> Provider<T> scope(BindingKey<T> bindingKey, Provider<T> creator) {
-                // call @PreDestroy on instances that are stored in this scope.
                 return new Provider<T>() {
                     private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
                     private boolean isCreatingInstance;
-                    private T instance;
+                    private volatile Object instance;
 
                     @Override
                     public T get() {
-                        if (instance == null) {
-                            instance = createScopedInstance();
-                            isCreatingInstance = false;
-                        }
-                        return instance;
-                    }
-
-                    private T createScopedInstance() {
-                        rwl.writeLock().lock();
-                        try {
-                            if (instance != null) {
-                                return instance;
+                        // cache volatile variable for the usual case of already initialized object
+                        final Object initialInstance = instance;
+                        if (initialInstance == null) {
+                            rwl.writeLock().lock();
+                            try {
+                                // intentionally reread volatile variable to prevent double initialization
+                                if (instance == null) {
+                                    if (isCreatingInstance) {
+                                        throw new IllegalStateException(
+                                                "can not create instance with circular dependency: " + bindingKey);
+                                    }
+                                    isCreatingInstance = true;
+                                    T provided = creator.get();
+                                    instance = provided == null ? NULL : provided;
+                                }
+                                // caching volatile variable to minimize number of reads performed
+                                final Object initializedInstance = instance;
+                                @SuppressWarnings("unchecked")
+                                T typedInstance = (T) initializedInstance;
+                                return initializedInstance == NULL ? null : typedInstance;
+                            } finally {
+                                isCreatingInstance = false;
+                                rwl.writeLock().unlock();
                             }
-                            if (isCreatingInstance) {// not to allow recursive invocations due to circular dependency!
-                                throw new IllegalStateException(
-                                        "can not create instance with circular dependency: " + bindingKey);
-                            }
-                            isCreatingInstance = true;
-                            return creator.get();
-                        } finally {
-                            rwl.writeLock().unlock();
+                        } else {// singleton is already initialized and local cache can be used
+                            @SuppressWarnings("unchecked")
+                            T typedInstance = (T) initialInstance;
+                            return initialInstance == NULL ? null : typedInstance;
                         }
                     }
                 };

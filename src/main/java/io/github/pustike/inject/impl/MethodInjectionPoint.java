@@ -73,8 +73,8 @@ final class MethodInjectionPoint<T> implements InjectionPoint<T> {
                 return method.invoke(instance, parameters);
             }
             return null;
-        } catch (Throwable t) {
-            throw new RuntimeException("error when setting the method as accessible", t);
+        } catch (Exception e) {
+            throw new RuntimeException("error when injecting dependency into " + toString(), e);
         }
     }
 

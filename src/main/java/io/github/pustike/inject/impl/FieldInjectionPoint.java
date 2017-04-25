@@ -51,8 +51,8 @@ final class FieldInjectionPoint<T> implements InjectionPoint<T> {
             }
             field.set(instance, value);
             return instance;
-        } catch (Throwable t) {
-            throw new RuntimeException("error when setting field as accessible", t);
+        } catch (Exception e) {
+            throw new RuntimeException("error when injecting dependency into " + toString(), e);
         }
     }
 

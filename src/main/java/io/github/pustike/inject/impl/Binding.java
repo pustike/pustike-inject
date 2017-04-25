@@ -29,17 +29,17 @@ final class Binding<T> {
     private final Scope scope;
     private DefaultInjector injector;
     private Provider<T> scopedProvider;
+    private boolean providerInjected;
 
     Binding(BindingKey<T> bindingKey, Provider<T> provider, Scope scope) {
         this.bindingKey = bindingKey;
         this.provider = provider;
         this.scope = scope;
+        // internal instanceProvider doesn't require any dependency injection
+        this.providerInjected = provider instanceof InstanceProvider;
     }
 
     private Provider<T> getScopedProvider() {
-        if (scopedProvider == null) {
-            scopedProvider = scope.scope(bindingKey, this::createInstance);
-        }
         return scopedProvider;
     }
 
@@ -49,6 +49,7 @@ final class Binding<T> {
 
     void postConfiguration(DefaultInjector injector) {
         this.injector = injector;
+        this.scopedProvider = scope.scope(bindingKey, this::createInstance);
         if (scope.toString().equals(Scopes.EAGER_SINGLETON)) {
             getScopedProvider().get();
         }
@@ -56,15 +57,13 @@ final class Binding<T> {
 
     private T createInstance() {
         // inject dependencies into the provider instance as well!
-        if (!(provider instanceof InstanceProvider)) {
-            // inject members into provider, every time an instance is created
-            // because they could be of different scope!
+        if (!providerInjected) {
             injector.injectMembers(provider);
+            providerInjected = true;
         }
         // get an instance from the provider
         T newInstance = provider.get();
-        // if not an injector binding, inject members of the instance
-        if (newInstance != null && !injector.equals(newInstance)) {
+        if (newInstance != null ) {// inject members of the new instance
             injector.injectMembers(bindingKey, newInstance);
         }
         return newInstance;

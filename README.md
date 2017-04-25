@@ -13,26 +13,26 @@ Following are some of its key features:
 
 **Documentation:** [Latest javadocs](http://pustike.github.io/pustike-inject/docs/latest/api/)
 
-**Latest Release:** The most recent release is v1.0.0, released on March 07, 2017.
+**Latest Release:** The most recent release is v1.0.1 (2017-04-30).
 
 To add a dependency using Maven, use the following:
 ```xml
 <dependency>
     <groupId>io.github.pustike</groupId>
     <artifactId>pustike-inject</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```
 dependencies {
-    compile 'io.github.pustike:pustike-inject:1.0.0'
+    compile 'io.github.pustike:pustike-inject:1.0.1'
 }
 ```
 
 Injector
 -------
-Injector is a core part of the library and tracks all dependencies for all types configured by module binders. When an instance of a type or of a binding key is requested, the injector returns an instance by creating it and injecting all its declared dependencies (fields and constructor/methods). 
+Injector is the core part of this library and tracks all dependencies for all types configured by module binders. When an instance of a type or of a binding key is requested, the injector returns an instance by creating it and injecting all its declared dependencies (fields and constructor/methods). 
 
 To create an injector, factory methods of Injectors class should be used, with bindings specified by modules and optionally with an injection point loader. And these bindings, specified by modules, are scanned to identify injection points and are registered as bindings linked to the binding key.
 

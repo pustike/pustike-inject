@@ -82,4 +82,33 @@ public interface Injector {
      * @param instance the instance to which members need to be injected
      */
     void injectMembers(Object instance);
+
+    /**
+     * Returns this injector's parent, or {@code null} if this is a top-level injector.
+     * @return the parent injector if present, else {@code null}
+     * @see #createChildInjector(Module...)
+     */
+    Injector getParent();
+
+    /**
+     * Returns a new injector that delegates all requests for bindings that are not found, to it's parent injector.
+     * All bindings in the parent injector are visible to the child, but elements of the child injector are
+     * not visible to its parent.
+     * @param modules an array of modules specifying type bindings
+     * @return the newly created child injector
+     * @see #createChildInjector(Iterable)
+     * @see #getParent()
+     */
+    Injector createChildInjector(Module... modules);
+
+    /**
+     * Returns a new injector that delegates all requests for bindings that are not found, to it's parent injector.
+     * All bindings in the parent injector are visible to the child, but elements of the child injector are
+     * not visible to its parent.
+     * @param modules an iterable (list) of modules specifying type bindings
+     * @return the newly created child injector
+     * @see #createChildInjector(Module...)
+     * @see #getParent()
+     */
+    Injector createChildInjector(Iterable<Module> modules);
 }

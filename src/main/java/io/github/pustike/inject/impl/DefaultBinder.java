@@ -16,6 +16,8 @@
 package io.github.pustike.inject.impl;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,6 +35,8 @@ import io.github.pustike.inject.bind.BindingListener;
 import io.github.pustike.inject.bind.InjectionListener;
 import io.github.pustike.inject.bind.LinkedBindingBuilder;
 import io.github.pustike.inject.bind.Module;
+import io.github.pustike.inject.bind.Provides;
+import io.github.pustike.inject.bind.ScopedBindingBuilder;
 
 /**
  * Default implementation of the {@link Binder binder}.
@@ -60,6 +64,7 @@ final class DefaultBinder implements Binder {
         for (Module module : modules) {
             defaultScope = annotationScopeMap.get(Scopes.PER_CALL);
             module.configure(this);
+            configureProvidesBindings(module);
         }
         for (DefaultBindingBuilder<?> bindingBuilder : bindingBuilderList) {
             bindingBuilder.build(injector);
@@ -83,6 +88,16 @@ final class DefaultBinder implements Binder {
         builder.setBinder(this);
         bindingBuilderList.add(builder);
         return builder;
+    }
+
+    @Override
+    public void install(Module module) {
+        Objects.requireNonNull(module);
+        Scope currentScope = defaultScope;
+        defaultScope = annotationScopeMap.get(Scopes.PER_CALL);
+        module.configure(this);
+        configureProvidesBindings(module);
+        defaultScope = currentScope;
     }
 
     @Override
@@ -137,5 +152,24 @@ final class DefaultBinder implements Binder {
         bindingBuilderList.clear();
         annotationScopeMap.clear();
         bindingListenerMatcherMap.clear();
+    }
+
+    private void configureProvidesBindings(Module module) {
+        Method[] declaredMethods = module.getClass().getDeclaredMethods();
+        for (Method method : declaredMethods) {
+            if (method.isAnnotationPresent(Provides.class)) {
+                Type genericType = method.getGenericReturnType();
+                if (genericType == void.class) {
+                    throw new RuntimeException("@Provides method should not have 'void' as return type : " + method);
+                }
+                Annotation[] annotations = method.getAnnotations();
+                BindingKey<?> bindingKey = DefaultInjectionPointLoader.createBindingKey(genericType, annotations);
+                Class<? extends Annotation> scopeAnnotation = DefaultBindingBuilder.getScopeAnnotation(annotations);
+                ScopedBindingBuilder builder = bind(bindingKey).to(method);
+                if (scopeAnnotation != null) {
+                    builder.in(scopeAnnotation);
+                }
+            }
+        }
     }
 }

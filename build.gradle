@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 group 'io.github.pustike'
-version '1.0.1'
+version '1.1.0'
 description 'A JSR-330 spec compliant dependency injection framework'
 
 apply plugin: 'java'
@@ -33,7 +33,6 @@ repositories {
 dependencies {
     compile 'javax.inject:javax.inject:1'
     testCompile 'javax.inject:javax.inject-tck:1'
-    testCompile 'javax.servlet:javax.servlet-api:3.1.0'
     testCompile 'junit:junit:4.12'
 }
 

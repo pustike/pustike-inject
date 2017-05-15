@@ -43,6 +43,16 @@ public interface Binder {
     <T> LinkedBindingBuilder<T> bind(BindingKey<T> key);
 
     /**
+     * Uses the given module to configure more bindings.
+     * <p>
+     * This allows for composition i.e. FooModule may install FooServiceModule (for instance). This would mean that
+     * an Injector created based only on FooModule will include bindings and providers in both FooModule and
+     * FooServiceModule. But same module can not be installed more than once, as duplicate bindings are not allowed.
+     * @param module the module to install
+     */
+    void install(Module module);
+
+    /**
      * Binds a scope annotation to the given scope instance.
      * For ex:
      * <pre>{@code

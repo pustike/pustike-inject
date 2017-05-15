@@ -198,14 +198,7 @@ final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T> {
     private Scope getScope() {
         if (scope == null) {
             Class<?> instanceType = targetType != null ? targetType : sourceKey.getType();
-            Class<? extends Annotation> scopeAnnotation = null;
-            Annotation[] declaredAnnotations = instanceType.getDeclaredAnnotations();
-            for (Annotation annotation : declaredAnnotations) {
-                if (annotation.annotationType().isAnnotationPresent(javax.inject.Scope.class)) {
-                    scopeAnnotation = annotation.annotationType();
-                    break;
-                }
-            }
+            Class<? extends Annotation> scopeAnnotation = getScopeAnnotation(instanceType.getDeclaredAnnotations());
             scope = scopeAnnotation != null ? binder.getScope(scopeAnnotation.getName()) : defaultScope;
         }
         if (scope == null) {
@@ -213,6 +206,15 @@ final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T> {
                     + " has been invoked on this binding builder.");
         }
         return scope;
+    }
+
+    static Class<? extends Annotation> getScopeAnnotation(Annotation[] annotations) {
+        for (Annotation annotation : annotations) {
+            if (annotation.annotationType().isAnnotationPresent(javax.inject.Scope.class)) {
+                return annotation.annotationType();
+            }
+        }
+        return null;
     }
 
     private Provider<? extends T> getInstanceProvider() {

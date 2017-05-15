@@ -8,25 +8,26 @@ Following are some of its key features:
 * Default Scopes: Prototype, Lazy Singleton and Eager Singleton
 * Support for custom scopes: Thread Local Scope and HTTP Session Scope
 * BindingListener: useful for performing further configurations
+* Hierarchical Injector support
 * Only ~40kB in size and no external dependencies
 * It requires Java 8 or higher.
 
 **Documentation:** [Latest javadocs](http://pustike.github.io/pustike-inject/docs/latest/api/)
 
-**Latest Release:** The most recent release is v1.0.1 (2017-04-30).
+**Latest Release:** The most recent release is v1.1.0 (2017-06-30).
 
 To add a dependency using Maven, use the following:
 ```xml
 <dependency>
     <groupId>io.github.pustike</groupId>
     <artifactId>pustike-inject</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```
 dependencies {
-    compile 'io.github.pustike:pustike-inject:1.0.1'
+    compile 'io.github.pustike:pustike-inject:1.1.0'
 }
 ```
 
@@ -45,6 +46,13 @@ Module module = binder -> {
 Injector injector = Injectors.create(module);
 Service service = injector.getInstance(Service.class);
 ```
+* **Hierarchical Injector**
+Injector can create a child injector that delegates all requests for bindings, that are not found, to it's parent injector. All bindings in the parent injector are visible to the child, but elements of the child injector are not visible to its parent.
+```java
+    Injector parentInjector = Injectors.create(new ParentModule1(), new ParentModule2());
+    Injector childInjector = parentInjector.createChildInjector(new ChildModule1(), new ChildModule2());
+```
+
 #### Module 
 A module contributes configuration information, i.e interface bindings, which will be used to create an Injector. Its configure method is called to create bindings, during injector creation.
 
@@ -123,6 +131,29 @@ Bindings are defined using EDSL(embedded domain-specific language) in plain Java
   3. *Eager Singleton Scope*: A binding with this scope will create a single instance, immediately after the injector is configured.
     ```java
     binder.bind(Service.class).to(ServiceImpl.class).asEagerSingleton();
+    ```
+
+* **Install Module**: Bindings can be installed from another module, which allows for composition. For instance, a FooModule may install FooServiceModule. This would mean that an Injector created based only on FooModule will include bindings and providers defined in both FooModule and FooServiceModule. But same module can not be installed more than once, as duplicate bindings are not allowed.
+    ```java
+    binder.install(new FooModule());
+    ```
+
+* **@Provides Methods**: Methods annotated with ```@Provides``` can be used when objects need to be created before binding them. This method must be defined within a module and it must have an ```@Provides``` annotation. This method's return type is the bound type and whenever the injector needs an instance of this type, it will invoke the method. It is similar to *ToInstance* bindings, but also supports injecting parameters to this method.
+    ```java
+    Module billingModule  = new Module() {
+        @Override
+        public void configure(Binder binder) {
+            // ...
+        }
+    
+        @Provides
+        TransactionLog provideTransactionLog() {
+            DatabaseTransactionLog transactionLog = new DatabaseTransactionLog();
+            transactionLog.setJdbcUrl("jdbc:mysql://localhost/pizza");
+            transactionLog.setThreadPoolSize(30);
+            return transactionLog;
+        }
+    };
     ```
 
 ##### Creating Custom Scope
@@ -214,7 +245,7 @@ public class HomeController {
 ##### Injection Listener
 Injection Listener listens for new instances created by injector, it is invoked after the instance's fields and methods are injected. It is useful for performing post-injection initialization.
 
-##### Injection Point Loader
+##### InjectionPoint Loader
 This is an interface for loading injection points (fields and methods/constructor) created by scanning through target types specified in bindings. It also provides an utility method to create injection points by reflectively scanning through target types. The default internal implementation stores these injection points in a ConcurrentHashMap.
 
 * Custom Injection Point Loader:

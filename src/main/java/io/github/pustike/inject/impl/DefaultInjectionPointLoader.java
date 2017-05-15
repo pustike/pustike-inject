@@ -141,14 +141,8 @@ public final class DefaultInjectionPointLoader implements InjectionPointLoader {
 
     @SuppressWarnings("unchecked")
     private static <T> InjectionPoint<T> createInjectionPoint(Field field) {
-        Type genericType = field.getGenericType();
-        Type rawType = genericType instanceof ParameterizedType ?
-                ((ParameterizedType) genericType).getRawType() : genericType;
-        boolean isProviderType = Provider.class.equals(rawType);
-        Class<T> bindingType = (Class<T>) (isProviderType ? getTypeArgument(genericType) : rawType);
         Annotation[] annotations = field.getAnnotations();
-        BindingKey<T> bindingKey = BindingKey.of(bindingType, getQualifierAnnotation(annotations));
-        BindingKey<T> targetKey = isProviderType ? bindingKey.createProviderKey() : bindingKey;
+        BindingKey<T> targetKey = createBindingKey(field.getGenericType(), annotations);
         return new FieldInjectionPoint<>(field, targetKey, allowsNullValue(annotations));
     }
 
@@ -156,14 +150,19 @@ public final class DefaultInjectionPointLoader implements InjectionPointLoader {
     private static <T> BindingKey<T>[] createParameterBindingKeys(Type[] parameterTypes, Annotation[][] annotations) {
         BindingKey<T>[] bindingKeys = (BindingKey<T>[]) Array.newInstance(BindingKey.class, parameterTypes.length);
         for (int i = 0; i < bindingKeys.length; i++) {
-            Type rawType = parameterTypes[i] instanceof ParameterizedType ?
-                    ((ParameterizedType) parameterTypes[i]).getRawType() : parameterTypes[i];
-            boolean isProviderType = rawType.equals(Provider.class);
-            Class<T> bindingType = (Class<T>) (isProviderType ? getTypeArgument(parameterTypes[i]) : rawType);
-            BindingKey<T> bindingKey = BindingKey.of(bindingType, getQualifierAnnotation(annotations[i]));
-            bindingKeys[i] = isProviderType ? bindingKey.createProviderKey() : bindingKey;
+            bindingKeys[i] = createBindingKey(parameterTypes[i], annotations[i]);
         }
         return bindingKeys;
+    }
+
+    @SuppressWarnings("unchecked")
+    static <T> BindingKey<T> createBindingKey(Type genericType, Annotation[] annotations) {
+        Type rawType = genericType instanceof ParameterizedType ?
+                ((ParameterizedType) genericType).getRawType() : genericType;
+        boolean isProviderType = Provider.class.equals(rawType);
+        Class<T> bindingType = (Class<T>) (isProviderType ? getTypeArgument(genericType) : rawType);
+        BindingKey<T> bindingKey = BindingKey.of(bindingType, getQualifierAnnotation(annotations));
+        return isProviderType ? bindingKey.createProviderKey() : bindingKey;
     }
 
     private static int computeHashCode(Class clazz, Method method) {

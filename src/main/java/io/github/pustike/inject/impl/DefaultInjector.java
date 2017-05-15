@@ -15,6 +15,7 @@
  */
 package io.github.pustike.inject.impl;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,6 +39,7 @@ public final class DefaultInjector implements Injector {
     private final InjectionPointLoader injectionPointLoader;
     private final Map<BindingKey<?>, Binding<?>> keyBindingMap;
     private final Map<InjectionListener, Predicate<Class<?>>> injectionListenerMatcherMap;
+    private DefaultInjector parentInjector;
     private boolean configured;
 
     /**
@@ -56,7 +58,7 @@ public final class DefaultInjector implements Injector {
      * @param modules a collection of modules
      * @return the instance of default injector
      */
-    public static Injector create(InjectionPointLoader injectionPointLoader, Iterable<Module> modules) {
+    public static DefaultInjector create(InjectionPointLoader injectionPointLoader, Iterable<Module> modules) {
         if (modules == null) {
             throw new NullPointerException("The module list must not be null.");
         }
@@ -107,12 +109,7 @@ public final class DefaultInjector implements Injector {
     @Override
     @SuppressWarnings("unchecked")
     public <T> Provider<T> getProvider(BindingKey<T> key) throws NoSuchBindingException {
-        key = key.isProviderKey() ? key : key.createProviderKey();
-        Binding<T> binding = getBinding(key);
-        if (binding == null) {
-            throw new NoSuchBindingException("No binding registered for key: " + key);
-        }
-        return (Provider<T>) binding.getInstance(key);
+        return (Provider<T>) getInstance(key.isProviderKey() ? key : key.createProviderKey());
     }
 
     @Override
@@ -125,9 +122,30 @@ public final class DefaultInjector implements Injector {
         injectMembers(BindingKey.of(instanceClass), instance);
     }
 
+    @Override
+    public Injector getParent() {
+        return parentInjector;
+    }
+
+    @Override
+    public Injector createChildInjector(Module... modules) {
+        return createChildInjector(Arrays.asList(modules));
+    }
+
+    @Override
+    public Injector createChildInjector(Iterable<Module> modules) {
+        DefaultInjector injector = create(injectionPointLoader, modules);
+        injector.parentInjector = this;
+        return injector;
+    }
+
     @SuppressWarnings("unchecked")
     private <T> Binding<T> getBinding(BindingKey<T> bindingKey) {
-        return bindingKey != null ? (Binding<T>) keyBindingMap.get(bindingKey) : null;
+        Binding<T> binding = bindingKey != null ? (Binding<T>) keyBindingMap.get(bindingKey) : null;
+        if (binding == null && parentInjector != null) {
+            binding = parentInjector.getBinding(bindingKey);
+        }
+        return binding;
     }
 
     <T> void register(BindingKey<T> bindingKey, Binding<T> binding) {

@@ -1,6 +1,17 @@
 Pustike Inject Changes
 ======================
 
+Release v1.1.0 (2017-06-30)
+--------------------------
+* **Hierarchical Injector** support by creating child injector which delegates all requests for bindings that are not found, to it's parent injector. All bindings in the parent injector are visible to child, but elements of the child injector are not visible to its parent. Following new APIs are introduced:
+  * Injector#createChildInjector(Module...)
+  * Injector#createChildInjector(Iterable)
+  * Injector##getParent()
+* Added Binder.install(Module) to configure bindings from the given module.
+* Bind Module methods annotated with @Provides to create provider method bindings.
+* Remove SessionScope from test packages as it belongs to pustike-web module 
+* Update build files to Gradle v4.0 release
+
 Release v1.0.1 (2017-04-30)
 --------------------------
 * Provider Bindings: Inject dependencies into provider instance only once.

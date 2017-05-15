@@ -25,14 +25,14 @@ import io.github.pustike.inject.Scope;
 /**
  * Thread scope, backed by a {@link java.lang.ThreadLocal}.
  * Example usage:
- * <pre><code>
- * Injector injector = Injectors.create((Module) binder -&gt; {
+ * <pre>{@code
+ * Injector injector = Injectors.create((Module) binder -> {
  *     ThreadScope threadScope = new ThreadScope();
  *     binder.bindScope(ThreadScoped.class, threadScope);
  *     binder.bind(ThreadScope.class).toInstance(threadScope);
  *     binder.bind(SomeClass.class).in(threadScope);
  * });
- * </code></pre>
+ * }</pre>
  * In thread pooling scenario's, never forget to reset the scope at the end of a request:
  * <pre>{@code
  * injector.getInstance(ThreadScope.class).clearContext();

@@ -1,33 +1,34 @@
 Pustike Inject
 ==============
-Pustike Inject is a simple dependency injection framework that implements the [JSR-330](http://javax-inject.github.io/javax-inject) specification.
+Pustike Inject is a simple dependency injection framework that implements the [JSR-330](https://javax-inject.github.io/javax-inject) specification.
 
 Following are some of its key features:
-* Programmatic configuration in plain Java using EDSL similar to that of [Guice Binder](http://google.github.io/guice/api-docs/latest/javadoc/com/google/inject/Binder.html).
+* Programmatic configuration in plain Java using EDSL similar to that of [Guice Binder](https://google.github.io/guice/api-docs/latest/javadoc/com/google/inject/Binder.html).
 * Field, Method and Constructor injections that can be Named or Annotated specifically
 * Default Scopes: Prototype, Lazy Singleton and Eager Singleton
 * Support for custom scopes: Thread Local Scope and HTTP Session Scope
 * BindingListener: useful for performing further configurations
 * Hierarchical Injector support
-* Only ~40kB in size and no external dependencies
+* MultiBinder support to bind multiple values as List/Collection
+* Only ~45kB in size and no external dependencies
 * It requires Java 8 or higher.
 
-**Documentation:** [Latest javadocs](http://pustike.github.io/pustike-inject/docs/latest/api/)
+**Documentation:** [Latest javadocs](https://pustike.github.io/pustike-inject/docs/latest/api/)
 
-**Latest Release:** The most recent release is v1.1.0 (2017-06-30).
+**Latest Release:** The most recent release is v1.2.0 (2017-11-14).
 
 To add a dependency using Maven, use the following:
 ```xml
 <dependency>
     <groupId>io.github.pustike</groupId>
     <artifactId>pustike-inject</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```
 dependencies {
-    compile 'io.github.pustike:pustike-inject:1.1.0'
+    compile 'io.github.pustike:pustike-inject:1.2.0'
 }
 ```
 
@@ -66,7 +67,7 @@ Bindings are defined using EDSL(embedded domain-specific language) in plain Java
     // with the following binding specification
     binder.bind(Tire.class).named("spare").to(SpareTire.class);
     ...
-    // This the named instance can be injected using the following annotation:
+    // This named instance can be injected using the following annotation:
     @Inject @Named("spare") Tire spareTire; 
     ```
 
@@ -88,7 +89,7 @@ Bindings are defined using EDSL(embedded domain-specific language) in plain Java
     ```java
     binder.bind(Service.class).toProvider(new ServiceProvider());
 
-    // Or to a provider class which will created during injection
+    // Or to a provider class which will be created during injection
     binder.bind(Service.class).toProvider(ServiceProvider.class);
     ```
 
@@ -98,13 +99,13 @@ Bindings are defined using EDSL(embedded domain-specific language) in plain Java
     binder.bind(Service.class).to(serviceImpl); 
     ```
 
-  4. *To Constructor*: Binds the interface to constructor of the implementation which is used create new instances by the injector. It is useful for cases where existing classes cannot be modified and it is a bit simpler than using a Provider. For ex:
+  4. *To Constructor*: Binds the interface to constructor of the implementation which is used to create new instances by the injector. It is useful for cases where existing classes cannot be modified and it is a bit simpler than using a Provider. For ex:
     ```java
     Constructor<?> loneConstructor = ServiceImpl.class.getDeclaredConstructors()[0];
     binder.bind(Service.class).toConstructor(loneConstructor);
     ```
 
-  5. *To Factory Method*: Binds the interface to the factory method which is used create new instances by the injector. It is useful for cases where existing classes cannot be modified and it is a bit simpler than using a Provider. For ex:
+  5. *To Factory Method*: Binds the interface to the factory method which is used to create new instances by the injector. It is useful for cases where existing classes cannot be modified and it is a bit simpler than using a Provider. For ex:
     ```java
     Method factoryMethod = ServiceImpl.class.getMethod("create");
     binder.bind(Service.class).to(factoryMethod);
@@ -156,6 +157,31 @@ Bindings are defined using EDSL(embedded domain-specific language) in plain Java
     };
     ```
 
+##### Using MultiBinder API
+With MultiBinder API multiple values of a type can be bound separately, to later inject them as a complete collection.
+For ex: using the following module configuration, a List<Snack> can be injected.
+```java
+Module snacksModule = binder -> {
+  MultiBinder<Snack> multiBinder = binder.multiBinder(Snack.class);
+  multiBinder.addBinding().toInstance(new Twix());
+  multiBinder.addBinding().toProvider(SnickersProvider.class);
+  multiBinder.addBinding().to(Skittles.class);
+};
+
+class SnackMachine {
+ @Inject
+ public SnackMachine(List<Snack> snacks) { ... }
+}
+```
+
+If desired, ```Collection<Provider<Snack>>``` can also be injected. 
+
+Contributing multiBindings from different modules is also supported. For example, it is okay for both CandyModule and ChipsModule to create their own MultiBinder<Snack>, and to each contribute bindings to the list of snacks. When that list is injected, it will contain elements from both modules.
+
+The injected list is unmodifiable and elements can only be added to the list by configuring the multiBinder. Elements can not be removed from the list.
+
+Annotations can be used to create different lists of the same element type. Each distinct annotation gets its own independent collection of elements.
+
 ##### Creating Custom Scope
 Custom Scopes can be created to retain the instance only in a certain context, like ```@SessionScoped, @ThreadScoped.``` The process of creating and using such a scope involves many steps. The following example shows how Session Scope can be defined which stores created instances as attributes in the session.
 * Defining a scoping annotation
@@ -172,14 +198,14 @@ Custom Scopes can be created to retain the instance only in a certain context, l
 
       @Override
       public <T> Provider<T> scope(BindingKey<T> bindingKey, Provider<T> creator) {
-          final String name = bindingKey.toString();
+          final String key = bindingKey.toString();
           return () -> {
               HttpSession session = threadLocal.get();
               if (session == null) {
-                  throw new IllegalStateException("Session is not open in this scope, for the key:" + name);
+                  throw new IllegalStateException("Session is not open in this scope, for key:" + key);
               }
               synchronized (session) {
-                  Object obj = session.getAttribute(name);
+                  Object obj = session.getAttribute(key);
                   if (NullObject.INSTANCE == obj) {
                       return null;
                   }
@@ -187,7 +213,7 @@ Custom Scopes can be created to retain the instance only in a certain context, l
                   T t = (T) obj;
                   if (t == null) {
                       t = creator.get();
-                      session.setAttribute(name, (t != null) ? t : NullObject.INSTANCE);
+                      session.setAttribute(key, (t != null) ? t : NullObject.INSTANCE);
                   }
                   return t;
               }
@@ -278,26 +304,23 @@ This is an interface for loading injection points (fields and methods/constructo
 
 Roadmap
 -------
-* List Bindings to support multiple bindings for the same key
-* Better Exception handling and error reporting
-* Bug fixes and writing more test cases
+* Writing test cases
 * More detailed documentation and examples
-* Optional bindings and Lazy Injections, as available in [Dagger](https://github.com/google/dagger)
 
 Other JSR-330 spec Implementations
 ---------------------------------
-The following projects are very widely used: 
+The following projects, implmenting this specification, are widely used: 
 * [Guice](https://github.com/google/guice) (pronounced 'juice') is a lightweight dependency injection framework. And this is also the reference implementation of JSR-330 spec.
 * [Spring Framework](https://github.com/spring-projects/spring-framework) provides a comprehensive programming and configuration model for modern Java-based enterprise applications.
 
 And there are also many other implementations available, like:
 * [Dagger](https://github.com/google/dagger) is A fast dependency injector for Android and Java.
-* [HK2](https://hk2.java.net) is a light-weight and dynamic dependency injection framework.
+* [HK2](https://github.com/javaee/hk2) is a light-weight and dynamic dependency injection framework.
 * [Commons Inject](https://commons.apache.org/sandbox/commons-inject): This project is not active anymore, but some of Pustike Inject's APIs were initially derived from here.
 
 License
 -------
-This library is published under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+This library is published under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 ```
  Copyright (C) 2016-2017 the original author or authors.
 
@@ -305,7 +328,7 @@ This library is published under the [Apache License, Version 2.0](http://www.apa
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
 
- http://www.apache.org/licenses/LICENSE-2.0
+ https://www.apache.org/licenses/LICENSE-2.0
 
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 group 'io.github.pustike'
-version '1.1.0'
+version '1.2.0'
 description 'A JSR-330 spec compliant dependency injection framework'
 
 apply plugin: 'java'
@@ -39,7 +39,7 @@ dependencies {
 javadoc {
     title = "Pustike Inject ${project.version} API"
     options.overview = "src/overview.html"
-    options.links = ["http://docs.oracle.com/javase/8/docs/api/", "http://javax-inject.github.io/javax-inject/api"]
+    options.links = ["https://docs.oracle.com/javase/8/docs/api/", "https://javax-inject.github.io/javax-inject/api"]
     exclude '**/impl/**' //exclude internal packages
 }
 
@@ -80,16 +80,16 @@ uploadArchives {
                 packaging 'jar'
                 // optionally artifactId can be defined here
                 description 'A JSR-330 spec compliant dependency injection framework.'
-                url 'http://www.github.com/pustike/pustike-inject'
+                url 'https://www.github.com/pustike/pustike-inject'
                 scm {
                     connection 'scm:git@github.com:pustike/pustike-inject.git'
                     developerConnection 'scm:git@github.com:pustike/pustike-inject.git'
-                    url 'http://www.github.com/pustike/pustike-inject'
+                    url 'https://www.github.com/pustike/pustike-inject'
                 }
                 licenses {
                     license {
                         name 'The Apache License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
                         distribution 'repo'
                     }
                 }

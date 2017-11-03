@@ -18,11 +18,14 @@ package io.github.pustike.inject.impl;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -117,26 +120,13 @@ public final class DefaultInjectionPointLoader implements InjectionPointLoader {
         return createInjectionPoint(defaultConstructor);
     }
 
-    static <T> InjectionPoint<T> createInjectionPoint(Constructor<? extends T> constructor) {
-        Type[] parameterTypes = constructor.getGenericParameterTypes();
-        Annotation[][] annotations = constructor.getParameterAnnotations();
+    static <T> InjectionPoint<T> createInjectionPoint(Executable executable) {
+        Type[] parameterTypes = executable.getGenericParameterTypes();
+        Annotation[][] annotations = executable.getParameterAnnotations();
         BindingKey<T>[] parameterBindingKeys = createParameterBindingKeys(parameterTypes, annotations);
         Boolean[] nullableParams = new Boolean[parameterTypes.length];
-        for (int i = 0; i < parameterTypes.length; i++) {
-            nullableParams[i] = allowsNullValue(annotations[i]);
-        }
-        return new MethodInjectionPoint<>(constructor, parameterBindingKeys, nullableParams);
-    }
-
-    static <T> InjectionPoint<T> createInjectionPoint(Method method) {
-        Type[] parameterTypes = method.getGenericParameterTypes();
-        Annotation[][] annotations = method.getParameterAnnotations();
-        BindingKey<T>[] parameterBindingKeys = createParameterBindingKeys(parameterTypes, annotations);
-        Boolean[] nullableParams = new Boolean[parameterTypes.length];
-        for (int i = 0; i < parameterTypes.length; i++) {
-            nullableParams[i] = allowsNullValue(annotations[i]);
-        }
-        return new MethodInjectionPoint<>(method, parameterBindingKeys, nullableParams);
+        Arrays.setAll(nullableParams, i -> allowsNullValue(annotations[i]));
+        return new ExecutableInjectionPoint<>(executable, parameterBindingKeys, nullableParams);
     }
 
     @SuppressWarnings("unchecked")
@@ -149,9 +139,7 @@ public final class DefaultInjectionPointLoader implements InjectionPointLoader {
     @SuppressWarnings("unchecked")
     private static <T> BindingKey<T>[] createParameterBindingKeys(Type[] parameterTypes, Annotation[][] annotations) {
         BindingKey<T>[] bindingKeys = (BindingKey<T>[]) Array.newInstance(BindingKey.class, parameterTypes.length);
-        for (int i = 0; i < bindingKeys.length; i++) {
-            bindingKeys[i] = createBindingKey(parameterTypes[i], annotations[i]);
-        }
+        Arrays.setAll(bindingKeys, i -> createBindingKey(parameterTypes[i], annotations[i]));
         return bindingKeys;
     }
 
@@ -159,10 +147,18 @@ public final class DefaultInjectionPointLoader implements InjectionPointLoader {
     static <T> BindingKey<T> createBindingKey(Type genericType, Annotation[] annotations) {
         Type rawType = genericType instanceof ParameterizedType ?
                 ((ParameterizedType) genericType).getRawType() : genericType;
+        boolean isMultiBinder = List.class.equals(rawType) || Collection.class.equals(rawType)
+                || Iterable.class.equals(rawType);
+        if (isMultiBinder) {
+            genericType = getTypeArgument(genericType);
+            rawType = genericType instanceof ParameterizedType ?
+                    ((ParameterizedType) genericType).getRawType() : genericType;
+        }
         boolean isProviderType = Provider.class.equals(rawType);
         Class<T> bindingType = (Class<T>) (isProviderType ? getTypeArgument(genericType) : rawType);
         BindingKey<T> bindingKey = BindingKey.of(bindingType, getQualifierAnnotation(annotations));
-        return isProviderType ? bindingKey.createProviderKey() : bindingKey;
+        bindingKey = isMultiBinder ? (BindingKey<T>) bindingKey.toListType() : bindingKey;
+        return isProviderType ? (BindingKey<T>) bindingKey.toProviderType() : bindingKey;
     }
 
     private static int computeHashCode(Class clazz, Method method) {

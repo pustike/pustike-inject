@@ -15,6 +15,11 @@
  */
 package io.github.pustike.inject.impl;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import javax.inject.Provider;
 
 import io.github.pustike.inject.BindingKey;
@@ -32,27 +37,40 @@ final class Binding<T> {
     private boolean providerInjected;
 
     Binding(BindingKey<T> bindingKey, Provider<T> provider, Scope scope) {
-        this.bindingKey = bindingKey;
-        this.provider = provider;
-        this.scope = scope;
-        // internal instanceProvider doesn't require any dependency injection
-        this.providerInjected = provider instanceof InstanceProvider;
+        this.bindingKey = Objects.requireNonNull(bindingKey);
+        this.provider = Objects.requireNonNull(provider);
+        this.scope = Objects.requireNonNull(scope);
     }
 
-    private Provider<T> getScopedProvider() {
-        return scopedProvider;
+    Binding(BindingKey<T> bindingKey, List<Binding<T>> bindingList, Scope scope) {
+        this(bindingKey, new MultiBindingProvider<>(bindingKey, bindingList), scope);
     }
 
-    Object getInstance(BindingKey<?> targetKey) {
-        return targetKey.isProviderKey() ? getScopedProvider() : getScopedProvider().get();
+    boolean addBinding(Binding<T> binding) {
+        return provider instanceof MultiBindingProvider && ((MultiBindingProvider<T>) provider).addBinding(binding);
     }
 
     void postConfiguration(DefaultInjector injector) {
-        this.injector = injector;
-        this.scopedProvider = scope.scope(bindingKey, this::createInstance);
-        if (scope.toString().equals(Scopes.EAGER_SINGLETON)) {
-            getScopedProvider().get();
+        if (provider instanceof MultiBindingProvider) {
+            ((MultiBindingProvider) provider).setInjector(injector);
+        } else {
+            this.injector = injector;
+            if (provider instanceof InstanceProvider) {
+                ((InstanceProvider) provider).setInjector(injector);
+                this.providerInjected = true;// internal instanceProvider doesn't require any dependency injection
+            }
+            this.scopedProvider = scope.scope(bindingKey, this::createInstance);
+            if (scope.toString().equals(Scopes.EAGER_SINGLETON)) {
+                this.scopedProvider.get();
+            }
         }
+    }
+
+    Object getInstance(BindingKey<?> targetKey) {
+        if (provider instanceof MultiBindingProvider) {
+            return ((MultiBindingProvider<?>) provider).getInstance(targetKey);
+        }
+        return targetKey.isProviderKey() ? this.scopedProvider : this.scopedProvider.get();
     }
 
     private T createInstance() {
@@ -63,9 +81,43 @@ final class Binding<T> {
         }
         // get an instance from the provider
         T newInstance = provider.get();
-        if (newInstance != null ) {// inject members of the new instance
+        if (newInstance != null) {// inject members of the new instance
             injector.injectMembers(bindingKey, newInstance);
         }
         return newInstance;
+    }
+
+    private static final class MultiBindingProvider<T> implements Provider<T> {
+        private final BindingKey<T> bindingKey;
+        private final List<Binding<T>> bindingList;
+
+        private MultiBindingProvider(BindingKey<T> bindingKey, List<Binding<T>> bindingList) {
+            this.bindingKey = bindingKey;
+            this.bindingList = bindingList;
+        }
+
+        private boolean addBinding(Binding<T> binding) {
+            return bindingList.add(binding);
+        }
+
+        private void setInjector(DefaultInjector injector) {
+            for (Binding<T> binding : bindingList) {
+                binding.postConfiguration(injector);
+            }
+        }
+
+        private Collection<?> getInstance(BindingKey<?> targetKey) {
+            List<Object> instanceList = new ArrayList<>();
+            for (Binding<T> binding : bindingList) {
+                instanceList.add(binding.getInstance(targetKey));
+            }
+            return Collections.unmodifiableList(instanceList);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public T get() {
+            return (T) getInstance(bindingKey);
+        }
     }
 }

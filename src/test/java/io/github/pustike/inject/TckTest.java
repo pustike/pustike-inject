@@ -35,8 +35,8 @@ import junit.framework.TestResult;
 import junit.textui.TestRunner;
 
 /**
- * Test that runs <a href="http://javax-inject.github.io/javax-inject" target="_blank">JSR-330 (Dependency Injection
- * for Java)</a> TCK (Technology Compatibility Kit).
+ * Test that runs <a href="https://javax-inject.github.io/javax-inject" target="_blank"> JSR-330</a>
+ * (Dependency Injection for Java) TCK (Technology Compatibility Kit).
  * </p>
  *
  * <p>This class follows
@@ -46,7 +46,7 @@ import junit.textui.TestRunner;
  */
 public class TckTest {
     @Test
-    public void testAtInjectTck() throws Exception {
+    public void testAtInjectTck() {
         Module module = binder -> {
             binder.bind(Car.class).to(Convertible.class);
             binder.bind(Seat.class).annotatedWith(Drivers.class).to(DriversSeat.class);

@@ -16,6 +16,7 @@
 package io.github.pustike.inject.impl;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
@@ -23,23 +24,14 @@ import io.github.pustike.inject.BindingKey;
 import io.github.pustike.inject.Injector;
 import io.github.pustike.inject.bind.InjectionPoint;
 
-final class MethodInjectionPoint<T> implements InjectionPoint<T> {
+final class ExecutableInjectionPoint<T> implements InjectionPoint<T> {
+    private final Executable executable;
     private final BindingKey<T>[] targetKeys;
     private final Boolean[] nullableParams;
-    private final Constructor<?> constructor;
-    private final Method method;
     private boolean isStaticMethodInjected;
 
-    MethodInjectionPoint(Constructor constructor, BindingKey<T>[] targetKeys, Boolean[] nullableParams) {
-        this.constructor = constructor;
-        this.method = null;
-        this.targetKeys = targetKeys;
-        this.nullableParams = nullableParams;
-    }
-
-    MethodInjectionPoint(Method method, BindingKey<T>[] targetKeys, Boolean[] nullableParams) {
-        this.constructor = null;
-        this.method = method;
+    ExecutableInjectionPoint(Executable executable, BindingKey<T>[] targetKeys, Boolean[] nullableParams) {
+        this.executable = executable;
         this.targetKeys = targetKeys;
         this.nullableParams = nullableParams;
     }
@@ -47,6 +39,9 @@ final class MethodInjectionPoint<T> implements InjectionPoint<T> {
     @Override
     public Object injectTo(T instance, Injector injector) {
         try {
+            if (isStaticMethodInjected) {
+                return null; // do not invoke a static method more than once!
+            }
             Object[] parameters = new Object[targetKeys.length];
             for (int i = 0; i < parameters.length; i++) {
                 BindingKey<T> targetKey = targetKeys[i];
@@ -57,20 +52,14 @@ final class MethodInjectionPoint<T> implements InjectionPoint<T> {
                 }
                 parameters[i] = value;
             }
-            if (constructor != null) {
-                if (!constructor.isAccessible()) {
-                    constructor.setAccessible(true);
-                }
-                return constructor.newInstance(parameters);
-            } else if (method != null) {
-                if (isStaticMethodInjected) {
-                    return null; // do not invoke a static method more than once!
-                }
-                isStaticMethodInjected = Modifier.isStatic(method.getModifiers());
-                if (!method.isAccessible()) {
-                    method.setAccessible(true);
-                }
-                return method.invoke(instance, parameters);
+            if (!executable.isAccessible()) {
+                executable.setAccessible(true);
+            }
+            if (executable instanceof Constructor) {
+                return ((Constructor) executable).newInstance(parameters);
+            } else if (executable instanceof Method) {
+                isStaticMethodInjected = Modifier.isStatic(executable.getModifiers());
+                return ((Method) executable).invoke(instance, parameters);
             }
             return null;
         } catch (Exception e) {
@@ -81,10 +70,10 @@ final class MethodInjectionPoint<T> implements InjectionPoint<T> {
     @Override
     public String toString() {
         StringBuilder toStringBuilder = new StringBuilder();
-        if (constructor != null) {
-            toStringBuilder.append("constructor=").append(constructor);
-        } else if (method != null) {
-            toStringBuilder.append("method=").append(method);
+        if (executable instanceof Constructor) {
+            toStringBuilder.append("constructor=").append(executable);
+        } else if (executable instanceof Method) {
+            toStringBuilder.append("method=").append(executable);
         }
         for (BindingKey<T> targetKey : targetKeys) {
             toStringBuilder.append("\n -> ").append(targetKey);

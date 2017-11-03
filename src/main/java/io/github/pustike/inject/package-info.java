@@ -15,6 +15,6 @@
  */
 /**
  * Pustike Inject is a simple dependency injection framework that implements the
- * <a href="http://javax-inject.github.io/javax-inject" target="_blank">JSR-330</a> specification.
+ * <a href="https://javax-inject.github.io/javax-inject" target="_blank">JSR-330</a> specification.
  */
 package io.github.pustike.inject;

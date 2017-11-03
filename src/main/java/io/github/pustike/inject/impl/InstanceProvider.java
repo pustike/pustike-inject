@@ -16,6 +16,7 @@
 package io.github.pustike.inject.impl;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import javax.inject.Provider;
 
@@ -27,18 +28,18 @@ import io.github.pustike.inject.bind.InjectionPoint;
  */
 final class InstanceProvider<T> implements Provider<T> {
     private final Class<? extends T> targetType;
-    private final Constructor<? extends T> constructor;
-    private final Method factoryMethod;
-    private final Class<? extends Provider<? extends T>> providerType;
+    private final Executable executable;
+    private final Object methodInstance;
+    private final Class<?> providerType;
+    private Provider<T> providerInstance;
     private Injector injector;
-    private InjectionPoint<T> injectionPoint;
-    private InjectionPoint<? extends Provider<? extends T>> providerInjectionPoint;
+    private InjectionPoint<Object> injectionPoint;
 
-    private InstanceProvider(Class<? extends T> targetType, Constructor<? extends T> constructor, Method method,
-            Class<? extends Provider<? extends T>> providerType) {
+    private InstanceProvider(Class<? extends T> targetType, Executable executable, Object methodInstance,
+            Class<?> providerType) {
         this.targetType = targetType;
-        this.constructor = constructor;
-        this.factoryMethod = method;
+        this.executable = executable;
+        this.methodInstance = methodInstance;
         this.providerType = providerType;
     }
 
@@ -50,15 +51,15 @@ final class InstanceProvider<T> implements Provider<T> {
         return new InstanceProvider<>(null, constructor, null, null);
     }
 
-    static <T> Provider<T> from(Method factoryMethod) {
-        return new InstanceProvider<>(null, null, factoryMethod, null);
+    static <T> Provider<T> from(Method providerMethod, Object instance) {
+        return new InstanceProvider<>(null, providerMethod, instance, null);
     }
 
     static <T> Provider<? extends T> fromProvider(Class<? extends Provider<? extends T>> providerType) {
         return new InstanceProvider<>(null, null, null, providerType);
     }
 
-    public void setInjector(Injector injector) {
+    void setInjector(Injector injector) {
         this.injector = injector;
     }
 
@@ -67,19 +68,13 @@ final class InstanceProvider<T> implements Provider<T> {
         try {
             // if provider type is defined,
             if (providerType != null) {
-                // create the provider instance
-                if (providerInjectionPoint == null) {
-                    providerInjectionPoint = DefaultInjectionPointLoader.createInjectionPoint(providerType);
-                }// and inject its members first
-                @SuppressWarnings("unchecked")
-                Provider<T> provider = (Provider<T>) providerInjectionPoint.injectTo(null, injector);
-                return provider.get();// return the instance from this provider
+                return getProviderInstance().get();// return the instance from this provider
             } else {// create a new instance from targetType or factory-constructor or factory-method
                 if (injectionPoint == null) {
                     injectionPoint = createInjectionPoint();
                 }
                 @SuppressWarnings("unchecked")
-                T newInstance = (T) injectionPoint.injectTo(null, injector);
+                T newInstance = (T) injectionPoint.injectTo(methodInstance, injector);
                 return newInstance;
             }
         } catch (Throwable t) {
@@ -87,13 +82,21 @@ final class InstanceProvider<T> implements Provider<T> {
         }
     }
 
-    private InjectionPoint<T> createInjectionPoint() {
+    @SuppressWarnings("unchecked")
+    private Provider<T> getProviderInstance() {
+        if(providerInstance == null) {// create the provider instance
+            InjectionPoint<?> injectionPoint = DefaultInjectionPointLoader.createInjectionPoint(providerType);
+            providerInstance = (Provider<T>) injectionPoint.injectTo(null, injector);
+            injector.injectMembers(providerInstance);// and inject its members first
+        }
+        return providerInstance;
+    }
+
+    private InjectionPoint<Object> createInjectionPoint() {
         if (targetType != null) {
             return DefaultInjectionPointLoader.createInjectionPoint(targetType);
-        } else if (constructor != null) {
-            return DefaultInjectionPointLoader.createInjectionPoint(constructor);
-        } else if (factoryMethod != null) {
-            return DefaultInjectionPointLoader.createInjectionPoint(factoryMethod);
+        } else if (executable != null) {
+            return DefaultInjectionPointLoader.createInjectionPoint(executable);
         }
         throw new RuntimeException("injection point can not be created with the parameters provided!");
     }

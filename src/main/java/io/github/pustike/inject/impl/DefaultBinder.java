@@ -35,6 +35,7 @@ import io.github.pustike.inject.bind.BindingListener;
 import io.github.pustike.inject.bind.InjectionListener;
 import io.github.pustike.inject.bind.LinkedBindingBuilder;
 import io.github.pustike.inject.bind.Module;
+import io.github.pustike.inject.bind.MultiBinder;
 import io.github.pustike.inject.bind.Provides;
 import io.github.pustike.inject.bind.ScopedBindingBuilder;
 
@@ -74,18 +75,26 @@ final class DefaultBinder implements Binder {
 
     @Override
     public <T> AnnotatedBindingBuilder<T> bind(Class<T> instanceType) {
-        DefaultBindingBuilder<T> builder = new DefaultBindingBuilder<>(instanceType);
-        builder.setDefaultScope(defaultScope);
-        builder.setBinder(this);
-        bindingBuilderList.add(builder);
-        return builder;
+        return addNewBindingBuilder(BindingKey.of(instanceType), false);
     }
 
     @Override
     public <T> LinkedBindingBuilder<T> bind(BindingKey<T> key) {
-        DefaultBindingBuilder<T> builder = new DefaultBindingBuilder<>(key);
-        builder.setDefaultScope(defaultScope);
-        builder.setBinder(this);
+        return addNewBindingBuilder(key, false);
+    }
+
+    @Override
+    public <T> MultiBinder<T> multiBinder(Class<T> instanceType) {
+        return addNewBindingBuilder(BindingKey.of(instanceType), true);
+    }
+
+    @Override
+    public <T> MultiBinder<T> multiBinder(BindingKey<T> key) {
+        return addNewBindingBuilder(key, true);
+    }
+
+    private <T> DefaultBindingBuilder<T> addNewBindingBuilder(BindingKey<T> key, boolean multiBinder) {
+        DefaultBindingBuilder<T> builder = new DefaultBindingBuilder<>(key, this, defaultScope, multiBinder);
         bindingBuilderList.add(builder);
         return builder;
     }
@@ -158,18 +167,22 @@ final class DefaultBinder implements Binder {
         Method[] declaredMethods = module.getClass().getDeclaredMethods();
         for (Method method : declaredMethods) {
             if (method.isAnnotationPresent(Provides.class)) {
-                Type genericType = method.getGenericReturnType();
-                if (genericType == void.class) {
-                    throw new RuntimeException("@Provides method should not have 'void' as return type : " + method);
-                }
-                Annotation[] annotations = method.getAnnotations();
-                BindingKey<?> bindingKey = DefaultInjectionPointLoader.createBindingKey(genericType, annotations);
-                Class<? extends Annotation> scopeAnnotation = DefaultBindingBuilder.getScopeAnnotation(annotations);
-                ScopedBindingBuilder builder = bind(bindingKey).to(method);
-                if (scopeAnnotation != null) {
-                    builder.in(scopeAnnotation);
-                }
+                addProvidesBinding(module, method);
             }
+        }
+    }
+
+    private void addProvidesBinding(Module module, Method method) {
+        Type returnType = method.getGenericReturnType();
+        if (returnType == void.class) {
+            throw new RuntimeException("@Provides method should not have 'void' as return type : " + method);
+        }
+        Annotation[] annotations = method.getAnnotations();
+        BindingKey<?> bindingKey = DefaultInjectionPointLoader.createBindingKey(returnType, annotations);
+        Class<? extends Annotation> scopeAnnotation = DefaultBindingBuilder.getScopeAnnotation(annotations);
+        ScopedBindingBuilder bindingBuilder = bind(bindingKey).toProvider(InstanceProvider.from(method, module));
+        if (scopeAnnotation != null) {
+            bindingBuilder.in(scopeAnnotation);
         }
     }
 }

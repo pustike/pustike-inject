@@ -19,6 +19,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import javax.inject.Provider;
 import javax.inject.Singleton;
@@ -28,6 +30,7 @@ import io.github.pustike.inject.Names;
 import io.github.pustike.inject.Scope;
 import io.github.pustike.inject.bind.AnnotatedBindingBuilder;
 import io.github.pustike.inject.bind.LinkedBindingBuilder;
+import io.github.pustike.inject.bind.MultiBinder;
 import io.github.pustike.inject.bind.ScopedBindingBuilder;
 
 /**
@@ -35,25 +38,30 @@ import io.github.pustike.inject.bind.ScopedBindingBuilder;
  * thus {@link ScopedBindingBuilder}, and {@link LinkedBindingBuilder} as well. In other words:
  * Under the hood, you are always using this one and only binding builder.
  */
-final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T> {
+final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T>, MultiBinder<T> {
     private static final String SCOPE_METHOD_LIST = "toInstance(Object), scope(Scopes)," +
             " asEagerSingleton(), and asLazySingleton()";
     private static final String TARGET_METHOD_LIST = "toInstance(Object), to(Class),"
             + " to(Constructor), to(Method), to(Provider, Class)";
     private final BindingKey<T> sourceKey;
+    private final DefaultBinder binder;
+    private final Scope defaultScope;
     private Annotation sourceAnnotation;
     private Class<? extends Annotation> sourceAnnotationType;
     private Class<? extends T> targetType;
     private Provider<? extends T> targetProvider;
-    private Scope defaultScope, scope;
-    private DefaultBinder binder;
+    private Scope scope;
+    // for multi-binding
+    private final boolean multiBinder;
+    private List<Binding<T>> bindingList;
+    private boolean addingBinding;
 
-    DefaultBindingBuilder(Class<T> type) {
-        sourceKey = BindingKey.of(type);
-    }
-
-    DefaultBindingBuilder(BindingKey<T> key) {
-        sourceKey = key;
+    DefaultBindingBuilder(BindingKey<T> key, DefaultBinder binder, Scope defaultScope, boolean multiBinder) {
+        this.sourceKey = key;
+        this.binder = binder;
+        this.defaultScope = defaultScope;
+        this.multiBinder = multiBinder;
+        this.bindingList = new ArrayList<>();
     }
 
     @Override
@@ -90,21 +98,17 @@ final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T> {
     public ScopedBindingBuilder to(Method factoryMethod) {
         if (factoryMethod == null) {
             throw new NullPointerException("The target constructor must not be null.");
-        }
-        if (!Modifier.isStatic(factoryMethod.getModifiers())) {
+        } else if (!Modifier.isStatic(factoryMethod.getModifiers())) {
             throw new IllegalStateException("The target method must be static.");
-        }
-        if (factoryMethod.getReturnType().isPrimitive()) {
+        } else if (factoryMethod.getReturnType().isPrimitive()) {
             throw new IllegalStateException("The target method must return a non-primitive result.");
-        }
-        if (factoryMethod.getReturnType().isArray()) {
+        } else if (factoryMethod.getReturnType().isArray()) {
             throw new IllegalStateException("The target method must return a single object, and not an array.");
-        }
-        if (Void.TYPE == factoryMethod.getReturnType()) {
+        } else if (Void.TYPE == factoryMethod.getReturnType()) {
             throw new IllegalStateException("The target method must return a non-void result.");
         }
         checkNoTarget();
-        targetProvider = InstanceProvider.from(factoryMethod);
+        targetProvider = InstanceProvider.from(factoryMethod, null);
         return this;
     }
 
@@ -172,24 +176,39 @@ final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T> {
         return this;
     }
 
-    void setDefaultScope(Scope defaultScope) {
-        this.defaultScope = defaultScope;
+    @Override
+    public LinkedBindingBuilder<T> addBinding() {
+        if (addingBinding) {
+            doAddBinding();
+        }
+        this.addingBinding = true;
+        return this;
     }
 
-    void setBinder(DefaultBinder binder) {
-        this.binder = binder;
-    }
-
-    void build(DefaultInjector injector) {
-        BindingKey<T> bindingKey = sourceAnnotation != null ? BindingKey.of(sourceKey.getType(), sourceAnnotation)
-                : BindingKey.of(sourceKey.getType(), sourceAnnotationType);
+    private void doAddBinding() {
+        if (targetProvider == null && targetType == null) {
+            throw new IllegalStateException("The target instance or a provider should be configured!");
+        }
         @SuppressWarnings("unchecked")
         Provider<T> provider = (Provider<T>) getInstanceProvider();
-        if (provider instanceof InstanceProvider) {
-            ((InstanceProvider) provider).setInjector(injector);
+        bindingList.add(new Binding<>(sourceKey, provider, getScope()));
+        targetType = null;
+        targetProvider = null;
+        scope = null;
+    }
+
+    @SuppressWarnings("unchecked")
+    void build(DefaultInjector injector) {
+        if (addingBinding) {
+            doAddBinding();
         }
-        Binding<T> binding = new Binding<>(bindingKey, provider, getScope());
-        injector.register(bindingKey, binding);// TODO support multiple bindings
+        BindingKey<T> bindingKey = sourceAnnotation != null ? BindingKey.of(sourceKey.getType(), sourceAnnotation)
+                : BindingKey.of(sourceKey.getType(), sourceAnnotationType);
+        bindingKey = multiBinder ? (BindingKey<T>) bindingKey.toListType() : bindingKey;
+        @SuppressWarnings("unchecked")
+        Binding<T> binding = multiBinder ? new Binding<>(bindingKey, bindingList, getScope())
+                : new Binding<>(bindingKey, (Provider<T>) getInstanceProvider(), getScope());
+        injector.register(bindingKey, binding);
         // call matching TypeBindingListeners for this binding targetType
         Class<? extends T> instanceType = targetType == null ? sourceKey.getType() : targetType;
         binder.visitTypeBindingListeners(instanceType);

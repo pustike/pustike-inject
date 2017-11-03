@@ -103,13 +103,13 @@ public final class DefaultInjector implements Injector {
 
     @Override
     public <T> Provider<T> getProvider(Class<T> type) throws NoSuchBindingException {
-        return getProvider(BindingKey.of(type).createProviderKey());
+        return getInstance(BindingKey.of(type).toProviderType());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> Provider<T> getProvider(BindingKey<T> key) throws NoSuchBindingException {
-        return (Provider<T>) getInstance(key.isProviderKey() ? key : key.createProviderKey());
+        return getInstance(key.toProviderType());
     }
 
     @Override
@@ -152,7 +152,13 @@ public final class DefaultInjector implements Injector {
         if (configured) {
             throw new IllegalStateException("Bindings can not be registered after the Injector is configured!");
         }
-        keyBindingMap.put(bindingKey, binding);
+        @SuppressWarnings("unchecked")
+        Binding<T> previousBinding = (Binding<T>) keyBindingMap.putIfAbsent(bindingKey, binding);
+        if (previousBinding != null) {
+            if(!previousBinding.addBinding(binding)) {// if multiBinder add this binding to it!
+                throw new IllegalStateException("A binding is already registered for this key: " + bindingKey);
+            }
+        }
     }
 
     void bindInjectionListener(Predicate<Class<?>> typeMatcher, InjectionListener injectionListener) {

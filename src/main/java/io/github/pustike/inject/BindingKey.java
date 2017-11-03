@@ -16,8 +16,10 @@
 package io.github.pustike.inject;
 
 import java.lang.annotation.Annotation;
+import java.util.List;
 import java.util.Objects;
 import javax.inject.Named;
+import javax.inject.Provider;
 
 /**
  * Binding key that contains an injection type and an optional qualifier annotation. It is also used to match the type
@@ -33,6 +35,8 @@ public final class BindingKey<T> {
     private final Class<? extends Annotation> annotationType;
     // indicates that this key matches to a provider of the type
     private boolean providerKey;
+    // indicates that this key matches to a List of the type
+    private boolean multiBinding;
     // hash code of this binding key, computed lazily using all specified parameters
     private int hashCode;
 
@@ -117,13 +121,43 @@ public final class BindingKey<T> {
 
     /**
      * Create a new key to indicate that this key matches to a {@link javax.inject.Provider} of the type.
+     * <p>
+     * Note: this key can only be used to get the instance from Injector, but not during binding.
      * @return a new key that matches to the provider of this binding type and qualifier
      */
-    public BindingKey<T> createProviderKey() {
-        BindingKey<T> providerKey = new BindingKey<>(type, annotation, annotationType);
-        providerKey.hashCode = hashCode;
-        providerKey.providerKey = true;
-        return providerKey;
+    public BindingKey<Provider<T>> toProviderType() {
+        return createBindingKey(true, multiBinding);
+    }
+
+    /**
+     * Create a new key to indicate that this key matches to a {@link java.util.List} or {@link java.util.Collection}
+     * of the given type bound using {@link io.github.pustike.inject.bind.MultiBinder}.
+     * <p>
+     * Note: this key can only be used to get the instance from Injector, but not during binding.
+     * @return a new key that matches to the type bound using multiBinder
+     */
+    public BindingKey<List<T>> toListType() {
+        return createBindingKey(providerKey, true);
+    }
+
+    /**
+     * Create a new key to indicate that this key matches to a {@code List<Provider<T>>}
+     * of the given type bound using {@link io.github.pustike.inject.bind.MultiBinder}.
+     * <p>
+     * Note: this key can only be used to get the instance from Injector, but not during binding.
+     * @return a new key that matches to the type bound using multiBinder
+     */
+    public BindingKey<List<Provider<T>>> toListProviderType() {
+        return createBindingKey(true, true);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <K> BindingKey<K> createBindingKey(boolean isProviderKey, boolean isMultiBinding) {
+        BindingKey<?> bindingKey = new BindingKey<>(type, annotation, annotationType);
+        bindingKey.providerKey = isProviderKey;
+        bindingKey.multiBinding = isMultiBinding;
+        bindingKey.hashCode = 0;
+        return (BindingKey<K>) bindingKey;
     }
 
     /**
@@ -171,7 +205,7 @@ public final class BindingKey<T> {
         } else if (annotationType != null) {
             result = 31 * result + AnnotationUtils.hashCode(annotationType);
         }
-        return result;
+        return multiBinding ? 31 * result + Boolean.hashCode(true) : result;
     }
 
     /**
@@ -184,14 +218,14 @@ public final class BindingKey<T> {
     }
 
     private static String toString(BindingKey<?> key) {
-        if (key == null) {
-            return "null";
-        }
-        StringBuilder sb = new StringBuilder().append(key.getType().getName());
+        String typeName = key.getType().getName();
+        typeName = key.providerKey ? "Provider<" + typeName + ">" : typeName;
+        typeName = key.multiBinding ? "List<" + typeName + ">" : typeName;
+        StringBuilder sb = new StringBuilder(typeName);
         Annotation annotation = key.getAnnotation();
         if (annotation != null) {
             if (annotation instanceof Named) {
-                sb.append("@javax.inject.Named(value=").append(((Named) annotation).value()).append(')');
+                sb.append("@Named(\"").append(((Named) annotation).value()).append("\")");
             } else {
                 sb.append('@').append(annotation);
             }

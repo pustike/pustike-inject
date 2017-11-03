@@ -43,6 +43,22 @@ public interface Binder {
     <T> LinkedBindingBuilder<T> bind(BindingKey<T> key);
 
     /**
+     * Binds the given type as {@link MultiBinder} to which additional bindings can be added.
+     * @param instanceType the instance type
+     * @param <T>          the type of the class specified in this binding
+     * @return the multi binder
+     */
+    <T> MultiBinder<T> multiBinder(Class<T> instanceType);
+
+    /**
+     * Binds the given key as {@link MultiBinder} to which additional bindings can be added.
+     * @param key the binding key
+     * @param <T> the type of the class specified in this binding
+     * @return the multi binder
+     */
+    <T> MultiBinder<T> multiBinder(BindingKey<T> key);
+
+    /**
      * Uses the given module to configure more bindings.
      * <p>
      * This allows for composition i.e. FooModule may install FooServiceModule (for instance). This would mean that

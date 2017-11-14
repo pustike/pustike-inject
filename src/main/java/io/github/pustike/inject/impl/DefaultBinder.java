@@ -164,10 +164,11 @@ final class DefaultBinder implements Binder {
     }
 
     private void configureProvidesBindings(Module module) {
-        Method[] declaredMethods = module.getClass().getDeclaredMethods();
-        for (Method method : declaredMethods) {
-            if (method.isAnnotationPresent(Provides.class)) {
-                addProvidesBinding(module, method);
+        for (Class<?> c = module.getClass(); c != Object.class; c = c.getSuperclass()) {
+            for (Method method : c.getDeclaredMethods()) {
+                if (method.isAnnotationPresent(Provides.class)) {
+                    addProvidesBinding(module, method);
+                }
             }
         }
     }

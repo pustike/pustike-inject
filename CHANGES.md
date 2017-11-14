@@ -7,6 +7,7 @@ Release v1.2.0 (2017-11-14)
 * Added methods to ```BindingKey```: ```toListType()``` and ```toListProviderType()```
 * Renamed ```BindingKey#createProviderKey()``` method as ```toProviderType()``` 
 * Fixed the issue in binding a provider when ```@Provides``` annotation is used on a method in the module
+* Scan for methods annotated with ```@Provides``` in module's superclasses also
 * Fixed the issue which allowed registering bindings to a key more than once.
 
 Release v1.1.0 (2017-06-30)

@@ -32,6 +32,7 @@ final class Binding<T> {
     private final BindingKey<T> bindingKey;
     private final Provider<T> provider;
     private final Scope scope;
+    private final boolean multiBinder;
     private DefaultInjector injector;
     private Provider<T> scopedProvider;
     private boolean providerInjected;
@@ -40,6 +41,7 @@ final class Binding<T> {
         this.bindingKey = Objects.requireNonNull(bindingKey);
         this.provider = Objects.requireNonNull(provider);
         this.scope = Objects.requireNonNull(scope);
+        this.multiBinder = provider instanceof MultiBindingProvider;
     }
 
     Binding(BindingKey<T> bindingKey, List<Binding<T>> bindingList, Scope scope) {
@@ -47,11 +49,11 @@ final class Binding<T> {
     }
 
     boolean addBinding(Binding<T> binding) {
-        return provider instanceof MultiBindingProvider && ((MultiBindingProvider<T>) provider).addBinding(binding);
+        return multiBinder && ((MultiBindingProvider<T>) provider).addBinding(binding);
     }
 
     void postConfiguration(DefaultInjector injector) {
-        if (provider instanceof MultiBindingProvider) {
+        if (multiBinder) {
             ((MultiBindingProvider) provider).setInjector(injector);
         } else {
             this.injector = injector;
@@ -67,10 +69,8 @@ final class Binding<T> {
     }
 
     Object getInstance(BindingKey<?> targetKey) {
-        if (provider instanceof MultiBindingProvider) {
-            return ((MultiBindingProvider<?>) provider).getInstance(targetKey);
-        }
-        return targetKey.isProviderKey() ? this.scopedProvider : this.scopedProvider.get();
+        return multiBinder ? ((MultiBindingProvider<?>) provider).getInstance(targetKey) :
+                targetKey.isProviderKey() ? this.scopedProvider : this.scopedProvider.get();
     }
 
     private T createInstance() {
@@ -97,7 +97,7 @@ final class Binding<T> {
         }
 
         private boolean addBinding(Binding<T> binding) {
-            return bindingList.add(binding);
+            return binding.multiBinder && bindingList.addAll(((MultiBindingProvider<T>) binding.provider).bindingList);
         }
 
         private void setInjector(DefaultInjector injector) {

@@ -1,4 +1,4 @@
-Pustike Inject
+Pustike Inject    [![][Maven Central img]][Maven Central] [![][Javadocs img]][Javadocs] [![][license img]][license]
 ==============
 Pustike Inject is a simple dependency injection framework that implements the [JSR-330](https://javax-inject.github.io/javax-inject) specification.
 
@@ -7,28 +7,29 @@ Following are some of its key features:
 * Field, Method and Constructor injections that can be Named or Annotated specifically
 * Default Scopes: Prototype, Lazy Singleton and Eager Singleton
 * Support for custom scopes: Thread Local Scope and HTTP Session Scope
-* BindingListener: useful for performing further configurations
-* Hierarchical Injector support
 * MultiBinder support to bind multiple values as List/Collection
+* Hierarchical Injector support
+* Optional dependencies using ```@Nullable``` or ```Optional<T>```
+* BindingListener: useful for performing further configurations
 * Only ~45kB in size and no external dependencies
 * It requires Java 8 or higher.
 
 **Documentation:** [Latest javadocs](https://pustike.github.io/pustike-inject/docs/latest/api/)
 
-**Latest Release:** The most recent release is v1.2.0 (2017-11-14).
+**Latest Release:** The most recent release is v1.3.0 (2018-01-01).
 
 To add a dependency using Maven, use the following:
 ```xml
 <dependency>
     <groupId>io.github.pustike</groupId>
     <artifactId>pustike-inject</artifactId>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```
 dependencies {
-    compile 'io.github.pustike:pustike-inject:1.2.0'
+    compile 'io.github.pustike:pustike-inject:1.3.0'
 }
 ```
 
@@ -176,11 +177,45 @@ class SnackMachine {
 
 If desired, ```Collection<Provider<Snack>>``` can also be injected. 
 
-Contributing multiBindings from different modules is also supported. For example, it is okay for both CandyModule and ChipsModule to create their own MultiBinder<Snack>, and to each contribute bindings to the list of snacks. When that list is injected, it will contain elements from both modules.
+Contributing multiBindings from different modules is also supported. For example, both CandyModule and ChipsModule can create their own ```MultiBinder<Snack>``` and contribute bindings to the list of snacks. When that list is injected, it will contain elements from both modules.
 
 The injected list is unmodifiable and elements can only be added to the list by configuring the multiBinder. Elements can not be removed from the list.
 
 Annotations can be used to create different lists of the same element type. Each distinct annotation gets its own independent collection of elements.
+
+##### Additional Features
+
+* **@Nullable support**: By default, if an ```@Inject``` annotated dependency (field or parameter), is not present in 
+configured binding, a ```NoSuchBindingException``` will be thrown.  If ```null``` value is to be allowed, then 
+the field or parameter should be annotated with ```@Nullable```. Injector recognizes any @Nullable annotation 
+(by it's simple name), like edu.umd.cs.findbugs.annotations.Nullable or javax.annotation.Nullable. For ex:
+    ```java
+    public class Computer {
+        private final Soundcard soundcard;
+    
+        @Inject
+        public Computer(@Nullable SoundCard soundcard) {
+            this.soundcard = soundcard == null ? new Soundcard("basic_sound_card") : soundcard;
+        }
+    }
+    ```
+* **Optional<T> support**: A dependency can be declared as ```Optional<T>``` if a binding is not required to be 
+configured. An optional Provider dependency can also be injected, like: ```Optional<Provider<Soundcard>>```. 
+If there is a binding defined in the module, the Optional value will be present; if there is no binding defined, 
+then the Optional will be absent. For ex:
+    ```java
+    public class Computer {
+        private final Soundcard soundcard;
+    
+        @Inject
+        public Computer(Optional<Soundcard> soundcard) {
+              this.soundcard = soundcard.orElse(new Soundcard("basic_sound_card"));  
+              // this.soundcard = soundcard.isPresent() ? soundcard.get() : new Soundcard("basic_sound_card");
+        }
+    }
+    ```
+    And optional dependencies can also be retrieved from injector using one of the following two api:
+    ```injector.getIfPresent(type)``` or ```injector.getIfPresent(key)```
 
 ##### Creating Custom Scope
 Custom Scopes can be created to retain the instance only in a certain context, like ```@SessionScoped, @ThreadScoped.``` The process of creating and using such a scope involves many steps. The following example shows how Session Scope can be defined which stores created instances as attributes in the session.
@@ -302,11 +337,6 @@ This is an interface for loading injection points (fields and methods/constructo
      Injector injector = Injectors.create(injectionPointLoader, modules);
   ```
 
-Roadmap
--------
-* Writing test cases
-* More detailed documentation and examples
-
 Other JSR-330 spec Implementations
 ---------------------------------
 The following projects, implmenting this specification, are widely used: 
@@ -336,3 +366,12 @@ This library is published under the [Apache License, Version 2.0](https://www.ap
  See the License for the specific language governing permissions and
  limitations under the License.
 ```
+
+[Maven Central]:https://maven-badges.herokuapp.com/maven-central/io.github.pustike/pustike-inject
+[Maven Central img]:https://maven-badges.herokuapp.com/maven-central/io.github.pustike/pustike-inject/badge.svg
+
+[Javadocs]:https://javadoc.io/doc/io.github.pustike/pustike-inject
+[Javadocs img]:https://javadoc.io/badge/io.github.pustike/pustike-inject.svg
+
+[license]:LICENSE
+[license img]:https://img.shields.io/badge/license-Apache%202-blue.svg

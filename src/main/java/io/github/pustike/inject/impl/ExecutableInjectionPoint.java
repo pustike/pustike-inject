@@ -19,39 +19,60 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Optional;
+import javax.inject.Inject;
 
-import io.github.pustike.inject.BindingKey;
 import io.github.pustike.inject.Injector;
+import io.github.pustike.inject.NoSuchBindingException;
 import io.github.pustike.inject.bind.InjectionPoint;
 
 final class ExecutableInjectionPoint<T> implements InjectionPoint<T> {
     private final Executable executable;
-    private final BindingKey<T>[] targetKeys;
-    private final Boolean[] nullableParams;
+    private final BindingTarget<?>[] bindingTargets;
     private boolean isStaticMethodInjected;
 
-    ExecutableInjectionPoint(Executable executable, BindingKey<T>[] targetKeys, Boolean[] nullableParams) {
+    ExecutableInjectionPoint(Executable executable) {
         this.executable = executable;
-        this.targetKeys = targetKeys;
-        this.nullableParams = nullableParams;
+        this.bindingTargets = BindingTarget.createParameterTargets(executable);
+    }
+
+    static <T> InjectionPoint<T> create(Class<? extends T> targetType) {
+        Constructor<?>[] constructors = targetType.getDeclaredConstructors();
+        if (constructors.length == 0) {
+            throw new RuntimeException("No constructors available for type: " + targetType);
+        }
+        Constructor<?> defaultConstructor = null;
+        for (Constructor<?> constructor : constructors) {
+            if (constructor.isAnnotationPresent(Inject.class)) {
+                return new ExecutableInjectionPoint<>(constructor);
+            }
+            if (constructor.getParameterCount() == 0) {
+                defaultConstructor = constructor;
+            }
+        }
+        if (defaultConstructor == null) {
+            throw new RuntimeException("No constructors available for type: " + targetType);
+        }
+        return new ExecutableInjectionPoint<>(defaultConstructor);
     }
 
     @Override
-    public Object injectTo(T instance, Injector injector) {
+    public Object injectTo(T instance, Injector injector) throws NoSuchBindingException {
+        if (isStaticMethodInjected) {
+            return null; // do not invoke a static method more than once!
+        }
+        Object[] parameters = new Object[bindingTargets.length];
+        for (int i = 0; i < parameters.length; i++) {
+            BindingTarget<?> bindingTarget = bindingTargets[i];
+            Optional<?> optional = injector.getIfPresent(bindingTarget.getKey());
+            Object value = bindingTarget.isOptionalType() ? optional : optional.orElse(null);
+            if (value == null && bindingTarget.isNotNullable()) {
+                throw new NoSuchBindingException("Parameter key: " + bindingTarget.getKey()
+                        + " doesn't allow null value in \n " + toString());
+            }
+            parameters[i] = value;
+        }
         try {
-            if (isStaticMethodInjected) {
-                return null; // do not invoke a static method more than once!
-            }
-            Object[] parameters = new Object[targetKeys.length];
-            for (int i = 0; i < parameters.length; i++) {
-                BindingKey<T> targetKey = targetKeys[i];
-                Object value = targetKey != null ? injector.getInstance(targetKey) : null;
-                if (value == null && nullableParams[i] != null && !nullableParams[i]) {
-                    throw new NullPointerException("Parameter key: " + targetKey + //
-                            " doesn't allow null value in \n " + toString());
-                }
-                parameters[i] = value;
-            }
             if (!executable.isAccessible()) {
                 executable.setAccessible(true);
             }
@@ -75,8 +96,8 @@ final class ExecutableInjectionPoint<T> implements InjectionPoint<T> {
         } else if (executable instanceof Method) {
             toStringBuilder.append("method=").append(executable);
         }
-        for (BindingKey<T> targetKey : targetKeys) {
-            toStringBuilder.append("\n -> ").append(targetKey);
+        for (BindingTarget<?> bindingTarget : bindingTargets) {
+            toStringBuilder.append("\n -> ").append(bindingTarget.getKey());
         }
         return toStringBuilder.toString();
     }

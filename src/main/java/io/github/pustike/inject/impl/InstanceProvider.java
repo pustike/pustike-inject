@@ -85,7 +85,7 @@ final class InstanceProvider<T> implements Provider<T> {
     @SuppressWarnings("unchecked")
     private Provider<T> getProviderInstance() {
         if(providerInstance == null) {// create the provider instance
-            InjectionPoint<?> injectionPoint = DefaultInjectionPointLoader.createInjectionPoint(providerType);
+            InjectionPoint<?> injectionPoint = ExecutableInjectionPoint.create(providerType);
             providerInstance = (Provider<T>) injectionPoint.injectTo(null, injector);
             injector.injectMembers(providerInstance);// and inject its members first
         }
@@ -94,9 +94,9 @@ final class InstanceProvider<T> implements Provider<T> {
 
     private InjectionPoint<Object> createInjectionPoint() {
         if (targetType != null) {
-            return DefaultInjectionPointLoader.createInjectionPoint(targetType);
+            return ExecutableInjectionPoint.create(targetType);
         } else if (executable != null) {
-            return DefaultInjectionPointLoader.createInjectionPoint(executable);
+            return new ExecutableInjectionPoint<>(executable);
         }
         throw new RuntimeException("injection point can not be created with the parameters provided!");
     }

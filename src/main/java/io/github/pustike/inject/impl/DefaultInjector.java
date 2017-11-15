@@ -20,6 +20,8 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import javax.inject.Provider;
@@ -59,22 +61,21 @@ public final class DefaultInjector implements Injector {
      * @return the instance of default injector
      */
     public static DefaultInjector create(InjectionPointLoader injectionPointLoader, Iterable<Module> modules) {
-        if (modules == null) {
-            throw new NullPointerException("The module list must not be null.");
-        }
+        Objects.requireNonNull(modules);
         if (modules instanceof Collection ? ((Collection<?>) modules).isEmpty()
                 : !modules.iterator().hasNext()) {
             throw new IllegalArgumentException("The module list must not be empty.");
         }
         DefaultInjector injector = new DefaultInjector(injectionPointLoader);
-        DefaultBinder binder = new DefaultBinder(injector).configure(modules);
+        DefaultBinder binder = new DefaultBinder(injector);
         // add injector itself as a binding to the registry
         BindingKey<Injector> bindingKey = BindingKey.of(Injector.class);
-        Provider<Injector> injectorProvider = () -> injector;
-        injector.register(bindingKey, new Binding<>(bindingKey, injectorProvider,
+        injector.register(bindingKey, new Binding<>(bindingKey, () -> injector,
                 binder.getScope(Scopes.EAGER_SINGLETON)));
+        binder.configure(modules);
         // do not allow any further modifications to keyBindingMap
-        injector.postConfiguration();
+        injector.configured = true;
+        injector.keyBindingMap.values().forEach(binding -> binding.postConfiguration(injector));
         binder.clear();// clear them all
         return injector;
     }
@@ -102,21 +103,30 @@ public final class DefaultInjector implements Injector {
     }
 
     @Override
+    public <T> Optional<T> getIfPresent(Class<T> type) {
+        return getIfPresent(BindingKey.of(type));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> Optional<T> getIfPresent(BindingKey<T> key) {
+        Binding<T> binding = getBinding(key);
+        return binding == null ? Optional.empty() : Optional.ofNullable((T) binding.getInstance(key));
+    }
+
+    @Override
     public <T> Provider<T> getProvider(Class<T> type) throws NoSuchBindingException {
         return getInstance(BindingKey.of(type).toProviderType());
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> Provider<T> getProvider(BindingKey<T> key) throws NoSuchBindingException {
         return getInstance(key.toProviderType());
     }
 
     @Override
     public void injectMembers(Object instance) {
-        if (instance == null) {
-            throw new NullPointerException("The instance must not be null.");
-        }
+        Objects.requireNonNull(instance);
         @SuppressWarnings("unchecked")
         Class<Object> instanceClass = (Class<Object>) instance.getClass();
         injectMembers(BindingKey.of(instanceClass), instance);
@@ -139,8 +149,8 @@ public final class DefaultInjector implements Injector {
         return injector;
     }
 
-    @SuppressWarnings("unchecked")
     private <T> Binding<T> getBinding(BindingKey<T> bindingKey) {
+        @SuppressWarnings("unchecked")
         Binding<T> binding = bindingKey != null ? (Binding<T>) keyBindingMap.get(bindingKey) : null;
         if (binding == null && parentInjector != null) {
             binding = parentInjector.getBinding(bindingKey);
@@ -165,21 +175,14 @@ public final class DefaultInjector implements Injector {
         injectionListenerMatcherMap.put(injectionListener, typeMatcher);
     }
 
-    private void postConfiguration() {
-        this.configured = true;
-        for (Binding<?> binding : keyBindingMap.values()) {
-            binding.postConfiguration(this);
-        }
-    }
-
     <T> void injectMembers(BindingKey<T> bindingKey, T instance) {
+        final Class<?> instanceType = instance.getClass();
         // first inject based on all known bindings
-        List<InjectionPoint<Object>> injectionPointList = injectionPointLoader.getInjectionPoints(instance.getClass());
+        List<InjectionPoint<Object>> injectionPointList = injectionPointLoader.getInjectionPoints(instanceType);
         for (InjectionPoint<Object> injectionPoint : injectionPointList) {
             injectionPoint.injectTo(instance, this);
         }
         // call matching Injection Listeners for this instance type
-        Class<?> instanceType = instance.getClass();
         for (Map.Entry<InjectionListener, Predicate<Class<?>>> mapEntry : injectionListenerMatcherMap.entrySet()) {
             Predicate<Class<?>> typeMatcher = mapEntry.getValue();
             if (typeMatcher.test(instanceType)) {

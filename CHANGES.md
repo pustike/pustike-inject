@@ -1,6 +1,13 @@
 Pustike Inject Changes
 ======================
 
+Release v1.3.0 (2017-12-18)
+--------------------------
+* Added support for optional dependencies using ```@Nullable``` and ```Optional<T>```
+* Added new methods to retrieve optional dependencies from injector:
+    ```injector.getIfPresent(type)``` and ```injector.getIfPresent(key)```
+* Fixed the issue in configuring MultiBinder when bindings are added from different modules for the same key.
+
 Release v1.2.0 (2017-11-14)
 --------------------------
 * Added **MultiBinder** support to bind multiple values separately, to later inject them as a complete collection. More details are available in javadocs.

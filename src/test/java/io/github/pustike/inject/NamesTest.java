@@ -75,7 +75,7 @@ public class NamesTest extends TestCase {
             new ObjectOutputStream(out).writeObject(original);
             ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
             @SuppressWarnings("unchecked") // the reserialized type is assignable
-                    E reserialized = (E) new ObjectInputStream(in).readObject();
+            E reserialized = (E) new ObjectInputStream(in).readObject();
             return reserialized;
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);

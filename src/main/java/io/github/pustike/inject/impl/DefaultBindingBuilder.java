@@ -45,7 +45,6 @@ final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T>, Mult
             + " to(Constructor), to(Method), to(Provider, Class)";
     private final BindingKey<T> sourceKey;
     private final DefaultBinder binder;
-    private final Scope defaultScope;
     private Annotation sourceAnnotation;
     private Class<? extends Annotation> sourceAnnotationType;
     private Class<? extends T> targetType;
@@ -53,13 +52,12 @@ final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T>, Mult
     private Scope scope;
     // for multi-binding
     private final boolean multiBinder;
-    private List<Binding<T>> bindingList;
+    private final List<Binding<T>> bindingList;
     private boolean addingBinding;
 
-    DefaultBindingBuilder(BindingKey<T> key, DefaultBinder binder, Scope defaultScope, boolean multiBinder) {
+    DefaultBindingBuilder(BindingKey<T> key, DefaultBinder binder, boolean multiBinder) {
         this.sourceKey = key;
         this.binder = binder;
-        this.defaultScope = defaultScope;
         this.multiBinder = multiBinder;
         this.bindingList = new ArrayList<>();
     }
@@ -189,9 +187,7 @@ final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T>, Mult
         if (targetProvider == null && targetType == null) {
             throw new IllegalStateException("The target instance or a provider should be configured!");
         }
-        @SuppressWarnings("unchecked")
-        Provider<T> provider = (Provider<T>) getInstanceProvider();
-        bindingList.add(new Binding<>(sourceKey, provider, getScope()));
+        bindingList.add(new Binding<>(sourceKey, getInstanceProvider(), getScope()));
         targetType = null;
         targetProvider = null;
         scope = null;
@@ -205,9 +201,8 @@ final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T>, Mult
         BindingKey<T> bindingKey = sourceAnnotation != null ? BindingKey.of(sourceKey.getType(), sourceAnnotation)
                 : BindingKey.of(sourceKey.getType(), sourceAnnotationType);
         bindingKey = multiBinder ? (BindingKey<T>) bindingKey.toListType() : bindingKey;
-        @SuppressWarnings("unchecked")
         Binding<T> binding = multiBinder ? new Binding<>(bindingKey, bindingList, getScope())
-                : new Binding<>(bindingKey, (Provider<T>) getInstanceProvider(), getScope());
+                : new Binding<>(bindingKey, getInstanceProvider(), getScope());
         injector.register(bindingKey, binding);
         // call matching TypeBindingListeners for this binding targetType
         Class<? extends T> instanceType = targetType == null ? sourceKey.getType() : targetType;
@@ -217,8 +212,7 @@ final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T>, Mult
     private Scope getScope() {
         if (scope == null) {
             Class<?> instanceType = targetType != null ? targetType : sourceKey.getType();
-            Class<? extends Annotation> scopeAnnotation = getScopeAnnotation(instanceType.getDeclaredAnnotations());
-            scope = scopeAnnotation != null ? binder.getScope(scopeAnnotation.getName()) : defaultScope;
+            scope = binder.getScope(instanceType.getDeclaredAnnotations());
         }
         if (scope == null) {
             throw new IllegalStateException("Neither of the methods " + SCOPE_METHOD_LIST
@@ -227,18 +221,10 @@ final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T>, Mult
         return scope;
     }
 
-    static Class<? extends Annotation> getScopeAnnotation(Annotation[] annotations) {
-        for (Annotation annotation : annotations) {
-            if (annotation.annotationType().isAnnotationPresent(javax.inject.Scope.class)) {
-                return annotation.annotationType();
-            }
-        }
-        return null;
-    }
-
-    private Provider<? extends T> getInstanceProvider() {
+    @SuppressWarnings("unchecked")
+    private Provider<T> getInstanceProvider() {
         if (targetProvider != null) {
-            return targetProvider;
+            return (Provider<T>) targetProvider;
         } else if (targetType != null) {
             return InstanceProvider.from(targetType);
         }

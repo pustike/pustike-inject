@@ -16,6 +16,7 @@
 package io.github.pustike.inject.bind;
 
 import io.github.pustike.inject.Injector;
+import io.github.pustike.inject.NoSuchBindingException;
 
 /**
  * Injector uses injection points to inject values into fields and methods/constructor.
@@ -27,6 +28,7 @@ public interface InjectionPoint<T> {
      * @param instance the instance to inject into, can be null for method/constructor injection
      * @param injector the default dependency injector
      * @return the result of the injection point invocation, may be null
+     * @throws NoSuchBindingException if any of the declared dependencies is not bound and is not optional
      */
-    Object injectTo(T instance, Injector injector);
+    Object injectTo(T instance, Injector injector) throws NoSuchBindingException;
 }

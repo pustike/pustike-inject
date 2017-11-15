@@ -48,7 +48,7 @@ public interface ScopedBindingBuilder {
      * <pre>{@code
      * ThreadScope threadScope = new ThreadScope();
      * binder.bindScope(ThreadScoped.class, threadScope);
-     * binder.bind(Service.class).to(ServiceImpl.class).in(thredScope);
+     * binder.bind(Service.class).to(ServiceImpl.class).in(threadScope);
      * }</pre>
      * @param scope the scope instance, which should be already registered to the binder
      * @see Binder#bindScope(Class, Scope)

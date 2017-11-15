@@ -15,6 +15,7 @@
  */
 package io.github.pustike.inject;
 
+import java.util.Optional;
 import javax.inject.Provider;
 
 import io.github.pustike.inject.bind.Module;
@@ -35,7 +36,7 @@ import io.github.pustike.inject.bind.Module;
 public interface Injector {
     /**
      * Returns an instance of {@code instanceType}, if a matching binding is present, after injecting all
-     * dependencies  into its fields and methods/constructor.
+     * dependencies into its constructor, fields and methods.
      * @param type the requested type.
      * @param <T>  the type of instance
      * @return the created instance with all dependencies injected into fields and methods/constructor.
@@ -46,7 +47,7 @@ public interface Injector {
 
     /**
      * Returns an instance of the binding that has been registered for the given key, after injecting all
-     * dependencies  into its fields and methods/constructor.
+     * dependencies into its constructor, fields and methods.
      * @param key A binding key, for which a binding has been registered.
      * @param <T> the type of instance
      * @return the created instance with all dependencies injected into fields and methods/constructor.
@@ -54,6 +55,26 @@ public interface Injector {
      * @see #getInstance(Class)
      */
     <T> T getInstance(BindingKey<T> key) throws NoSuchBindingException;
+
+    /**
+     * Returns an {@link Optional} instance of the given {@code type}, if a matching binding is present,
+     * after injecting all dependencies into its constructor, fields and methods.
+     * @param type the requested type.
+     * @param <T>  the type of instance
+     * @return the optional instance for the given type, if binding is present.
+     * @see #getInstance(Class)
+     */
+    <T> Optional<T> getIfPresent(Class<T> type);
+
+    /**
+     * Returns an {@link Optional} instance for the given {@code key}, if a matching binding is present,
+     * after injecting all dependencies into its constructor, fields and methods.
+     * @param key  the target binding key
+     * @param <T>  the type of instance
+     * @return the optional instance for the given key, if binding is present.
+     * @see #getInstance(BindingKey)
+     */
+    <T> Optional<T> getIfPresent(BindingKey<T> key);
 
     /**
      * Returns the instance provider of the type, if a matching binding is present.
@@ -80,8 +101,9 @@ public interface Injector {
      * In other words, fills fields and invokes methods annotated with @Inject, assuming that a binding is present for
      * those fields, and method parameters.
      * @param instance the instance to which members need to be injected
+     * @throws NoSuchBindingException if any of the declared dependencies is not bound and is not optional
      */
-    void injectMembers(Object instance);
+    void injectMembers(Object instance) throws NoSuchBindingException;
 
     /**
      * Returns this injector's parent, or {@code null} if this is a top-level injector.

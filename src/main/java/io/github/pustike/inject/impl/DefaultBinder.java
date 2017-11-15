@@ -37,7 +37,6 @@ import io.github.pustike.inject.bind.LinkedBindingBuilder;
 import io.github.pustike.inject.bind.Module;
 import io.github.pustike.inject.bind.MultiBinder;
 import io.github.pustike.inject.bind.Provides;
-import io.github.pustike.inject.bind.ScopedBindingBuilder;
 
 /**
  * Default implementation of the {@link Binder binder}.
@@ -61,16 +60,15 @@ final class DefaultBinder implements Binder {
         annotationScopeMap.put(Singleton.class.getName(), Scopes.createSingletonScope());
     }
 
-    DefaultBinder configure(Iterable<Module> modules) {
-        for (Module module : modules) {
-            defaultScope = annotationScopeMap.get(Scopes.PER_CALL);
-            module.configure(this);
-            configureProvidesBindings(module);
-        }
-        for (DefaultBindingBuilder<?> bindingBuilder : bindingBuilderList) {
-            bindingBuilder.build(injector);
-        }
-        return this;
+    void configure(Iterable<Module> modules) {
+        modules.forEach(this::configureModule);
+        bindingBuilderList.forEach(bindingBuilder -> bindingBuilder.build(injector));
+    }
+
+    private void configureModule(Module module) {
+        defaultScope = getScope(Scopes.PER_CALL);
+        module.configure(this);
+        configureProvidesBindings(module);
     }
 
     @Override
@@ -94,7 +92,7 @@ final class DefaultBinder implements Binder {
     }
 
     private <T> DefaultBindingBuilder<T> addNewBindingBuilder(BindingKey<T> key, boolean multiBinder) {
-        DefaultBindingBuilder<T> builder = new DefaultBindingBuilder<>(key, this, defaultScope, multiBinder);
+        DefaultBindingBuilder<T> builder = new DefaultBindingBuilder<>(key, this, multiBinder);
         bindingBuilderList.add(builder);
         return builder;
     }
@@ -103,9 +101,7 @@ final class DefaultBinder implements Binder {
     public void install(Module module) {
         Objects.requireNonNull(module);
         Scope currentScope = defaultScope;
-        defaultScope = annotationScopeMap.get(Scopes.PER_CALL);
-        module.configure(this);
-        configureProvidesBindings(module);
+        configureModule(module);
         defaultScope = currentScope;
     }
 
@@ -130,6 +126,20 @@ final class DefaultBinder implements Binder {
             throw new IllegalStateException("AnnotationType '" + scopeName + "' is not bound to any scope!");
         }
         return scope;
+    }
+
+    Scope getScope(Annotation[] annotations) {
+        Class<? extends Annotation> scopeAnnotation = getScopeAnnotation(annotations);
+        return scopeAnnotation != null ? getScope(scopeAnnotation.getName()) : defaultScope;
+    }
+
+    private static Class<? extends Annotation> getScopeAnnotation(Annotation[] annotations) {
+        for (Annotation annotation : annotations) {
+            if (annotation.annotationType().isAnnotationPresent(javax.inject.Scope.class)) {
+                return annotation.annotationType();
+            }
+        }
+        return null;
     }
 
     @Override
@@ -157,12 +167,6 @@ final class DefaultBinder implements Binder {
         }
     }
 
-    void clear() {
-        bindingBuilderList.clear();
-        annotationScopeMap.clear();
-        bindingListenerMatcherMap.clear();
-    }
-
     private void configureProvidesBindings(Module module) {
         for (Class<?> c = module.getClass(); c != Object.class; c = c.getSuperclass()) {
             for (Method method : c.getDeclaredMethods()) {
@@ -179,11 +183,13 @@ final class DefaultBinder implements Binder {
             throw new RuntimeException("@Provides method should not have 'void' as return type : " + method);
         }
         Annotation[] annotations = method.getAnnotations();
-        BindingKey<?> bindingKey = DefaultInjectionPointLoader.createBindingKey(returnType, annotations);
-        Class<? extends Annotation> scopeAnnotation = DefaultBindingBuilder.getScopeAnnotation(annotations);
-        ScopedBindingBuilder bindingBuilder = bind(bindingKey).toProvider(InstanceProvider.from(method, module));
-        if (scopeAnnotation != null) {
-            bindingBuilder.in(scopeAnnotation);
-        }
+        BindingKey<?> bindingKey = new BindingTarget<>(returnType, annotations).getKey();
+        bind(bindingKey).toProvider(InstanceProvider.from(method, module)).in(getScope(annotations));
+    }
+
+    void clear() {
+        bindingBuilderList.clear();
+        annotationScopeMap.clear();
+        bindingListenerMatcherMap.clear();
     }
 }

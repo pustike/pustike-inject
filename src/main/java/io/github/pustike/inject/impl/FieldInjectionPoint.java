@@ -17,37 +17,36 @@ package io.github.pustike.inject.impl;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Optional;
 
-import io.github.pustike.inject.BindingKey;
 import io.github.pustike.inject.Injector;
+import io.github.pustike.inject.NoSuchBindingException;
 import io.github.pustike.inject.bind.InjectionPoint;
 
 final class FieldInjectionPoint<T> implements InjectionPoint<T> {
-    private final BindingKey<T> targetKey;
+    private final BindingTarget<T> bindingTarget;
     private final Field field;
-    // Whether this field supports null values to be injected.
-    private final boolean allowNullValue;
     private boolean isStaticFieldInjected;
 
-    FieldInjectionPoint(Field field, BindingKey<T> targetKey, boolean allowNullValue) {
-        this.targetKey = targetKey;
+    FieldInjectionPoint(Field field) {
         this.field = field;
-        this.allowNullValue = allowNullValue;
+        this.bindingTarget = new BindingTarget<>(field.getGenericType(), field.getAnnotations());
     }
 
     @Override
-    public Object injectTo(T instance, Injector injector) {
+    public Object injectTo(T instance, Injector injector) throws NoSuchBindingException {
+        if (isStaticFieldInjected) {
+            return null; // do not set a static field more than once!
+        }
+        Optional<T> optional = injector.getIfPresent(bindingTarget.getKey());
+        Object value = bindingTarget.isOptionalType() ? optional : optional.orElse(null);
+        if (value == null && bindingTarget.isNotNullable()) {
+            throw new NoSuchBindingException("Injecting null value is not allowed into " + toString());
+        }
         try {
-            if (isStaticFieldInjected) {
-                return null; // do not set a static field more than once!
-            }
             isStaticFieldInjected = Modifier.isStatic(field.getModifiers());
             if (!field.isAccessible()) {
                 field.setAccessible(true);
-            }
-            T value = injector.getInstance(targetKey);
-            if (value == null && !allowNullValue) {
-                throw new NullPointerException("Field: " + field + " doesn't allow null values!");
             }
             field.set(instance, value);
             return instance;
@@ -58,6 +57,6 @@ final class FieldInjectionPoint<T> implements InjectionPoint<T> {
 
     @Override
     public String toString() {
-        return "field=" + field + " -> " + targetKey;
+        return "field=" + field + " -> " + bindingTarget.getKey();
     }
 }

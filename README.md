@@ -16,7 +16,7 @@ Following are some of its key features:
 
 **Documentation:** [Latest javadocs](https://pustike.github.io/pustike-inject/docs/latest/api/)
 
-**Latest Release:** The most recent release is v1.3.0 (2018-01-01).
+**Latest Release:** The most recent release is v1.3.0 (2017-12-18).
 
 To add a dependency using Maven, use the following:
 ```xml
@@ -205,13 +205,13 @@ If there is a binding defined in the module, the Optional value will be present;
 then the Optional will be absent. For ex:
     ```java
     public class Computer {
-        private final Soundcard soundcard;
+      private final Soundcard soundcard;
     
-        @Inject
-        public Computer(Optional<Soundcard> soundcard) {
-              this.soundcard = soundcard.orElse(new Soundcard("basic_sound_card"));  
-              // this.soundcard = soundcard.isPresent() ? soundcard.get() : new Soundcard("basic_sound_card");
-        }
+      @Inject
+      public Computer(Optional<Soundcard> soundcard) {
+        this.soundcard = soundcard.orElse(new Soundcard("basic_sound_card"));  
+        //this.soundcard = soundcard.isPresent() ? soundcard.get() : new Soundcard("basic_sound_card");
+      }
     }
     ```
     And optional dependencies can also be retrieved from injector using one of the following two api:
@@ -313,21 +313,21 @@ This is an interface for loading injection points (fields and methods/constructo
  Custom implementations can be created to use an advanced backing cache to store these injection points. Following is a sample custom injection point loader that uses [Caffeine](https://github.com/ben-manes/caffeine) for caching injection points.
   ```java
   public class CaffeineInjectionPointLoader implements InjectionPointLoader {
-        private final LoadingCache<Class<?>, List<InjectionPoint<Object>>> injectionPointCache;
+    private final LoadingCache<Class<?>, List<InjectionPoint<Object>>> injectionPointCache;
 
-        public CaffeineInjectionPointLoader() {
-            this.injectionPointCache = Caffeine.newBuilder().weakValues().build(this::createInjectionPoints);
-        }
+    public CaffeineInjectionPointLoader() {
+      this.injectionPointCache = Caffeine.newBuilder().weakValues().build(this::createInjectionPoints);
+    }
 
-        @Override
-        public List<InjectionPoint<Object>> getInjectionPoints(Class<?> clazz) {
-            return injectionPointCache.get(clazz);
-        }
+    @Override
+    public List<InjectionPoint<Object>> getInjectionPoints(Class<?> clazz) {
+      return injectionPointCache.get(clazz);
+    }
 
-        @Override
-        public void invalidateAll() {
-            injectionPointCache.invalidateAll();
-        }
+    @Override
+    public void invalidateAll() {
+      injectionPointCache.invalidateAll();
+    }
   }
   ```
   And when creating the injector, this custom loader should be used as: 

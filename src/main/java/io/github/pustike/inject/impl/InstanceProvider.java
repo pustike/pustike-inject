@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016-2017 the original author or authors.
+ * Copyright (C) 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +21,7 @@ import java.lang.reflect.Method;
 import javax.inject.Provider;
 
 import io.github.pustike.inject.Injector;
-import io.github.pustike.inject.bind.InjectionPoint;
+import io.github.pustike.inject.spi.InjectionPoint;
 
 /**
  * Provides new instance of the target for binding.
@@ -31,7 +31,7 @@ final class InstanceProvider<T> implements Provider<T> {
     private final Executable executable;
     private final Object methodInstance;
     private final Class<?> providerType;
-    private Provider<T> providerInstance;
+    private Provider<?> providerInstance;
     private Injector injector;
     private InjectionPoint<Object> injectionPoint;
 
@@ -64,32 +64,25 @@ final class InstanceProvider<T> implements Provider<T> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T get() {
-        try {
-            // if provider type is defined,
-            if (providerType != null) {
-                return getProviderInstance().get();// return the instance from this provider
-            } else {// create a new instance from targetType or factory-constructor or factory-method
-                if (injectionPoint == null) {
-                    injectionPoint = createInjectionPoint();
-                }
-                @SuppressWarnings("unchecked")
-                T newInstance = (T) injectionPoint.injectTo(methodInstance, injector);
-                return newInstance;
-            }
-        } catch (Throwable t) {
-            throw new RuntimeException("error when creating provider", t);
-        }
+        // if provider type is defined, return the instance from this provider
+        // else create new instance from targetType or factory-constructor or factory-method
+        return providerType != null ? (T) getProviderInstance().get()
+                : (T) getInjectionPoint().injectTo(methodInstance, injector);
     }
 
-    @SuppressWarnings("unchecked")
-    private Provider<T> getProviderInstance() {
+    private Provider<?> getProviderInstance() {
         if(providerInstance == null) {// create the provider instance
             InjectionPoint<?> injectionPoint = ExecutableInjectionPoint.create(providerType);
-            providerInstance = (Provider<T>) injectionPoint.injectTo(null, injector);
+            providerInstance = (Provider<?>) injectionPoint.injectTo(null, injector);
             injector.injectMembers(providerInstance);// and inject its members first
         }
         return providerInstance;
+    }
+
+    private InjectionPoint<Object> getInjectionPoint() {
+        return injectionPoint == null ? injectionPoint = createInjectionPoint() : injectionPoint;
     }
 
     private InjectionPoint<Object> createInjectionPoint() {

@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016-2017 the original author or authors.
+ * Copyright (C) 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,23 +23,25 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.inject.Provider;
 
 import io.github.pustike.inject.BindingKey;
 import io.github.pustike.inject.Injector;
 import io.github.pustike.inject.NoSuchBindingException;
-import io.github.pustike.inject.bind.InjectionListener;
-import io.github.pustike.inject.bind.InjectionPoint;
-import io.github.pustike.inject.bind.InjectionPointLoader;
 import io.github.pustike.inject.bind.Module;
+import io.github.pustike.inject.spi.InjectionListener;
+import io.github.pustike.inject.spi.InjectionPoint;
+import io.github.pustike.inject.spi.InjectionPointLoader;
 
 /**
  * Default implementation of an {@link Injector injector}.
  */
 public final class DefaultInjector implements Injector {
-    private final InjectionPointLoader injectionPointLoader;
     private final Map<BindingKey<?>, Binding<?>> keyBindingMap;
+    private final InjectionPointLoader injectionPointLoader;
+    private final Function<Class<?>, List<InjectionPoint<Object>>> injectionPointCreator;
     private final Map<InjectionListener, Predicate<Class<?>>> injectionListenerMatcherMap;
     private DefaultInjector parentInjector;
     private boolean configured;
@@ -81,9 +83,10 @@ public final class DefaultInjector implements Injector {
     }
 
     private DefaultInjector(InjectionPointLoader injectionPointLoader) {
+        this.keyBindingMap = new ConcurrentHashMap<>();
         this.injectionPointLoader = injectionPointLoader == null //
                 ? new DefaultInjectionPointLoader() : injectionPointLoader;
-        this.keyBindingMap = new ConcurrentHashMap<>();
+        this.injectionPointCreator = DefaultInjectionPointLoader::doCreateInjectionPoints;
         this.injectionListenerMatcherMap = new LinkedHashMap<>();
     }
 
@@ -150,6 +153,9 @@ public final class DefaultInjector implements Injector {
     }
 
     private <T> Binding<T> getBinding(BindingKey<T> bindingKey) {
+        if (!configured) {
+            throw new IllegalStateException("Bindings can be obtained only after the Injector is fully configured!");
+        }
         @SuppressWarnings("unchecked")
         Binding<T> binding = bindingKey != null ? (Binding<T>) keyBindingMap.get(bindingKey) : null;
         if (binding == null && parentInjector != null) {
@@ -178,7 +184,8 @@ public final class DefaultInjector implements Injector {
     <T> void injectMembers(BindingKey<T> bindingKey, T instance) {
         final Class<?> instanceType = instance.getClass();
         // first inject based on all known bindings
-        List<InjectionPoint<Object>> injectionPointList = injectionPointLoader.getInjectionPoints(instanceType);
+        List<InjectionPoint<Object>> injectionPointList = injectionPointLoader
+                .getInjectionPoints(instanceType, injectionPointCreator);
         for (InjectionPoint<Object> injectionPoint : injectionPointList) {
             injectionPoint.injectTo(instance, this);
         }

@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016-2017 the original author or authors.
+ * Copyright (C) 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,8 +25,13 @@ import java.util.Map;
 import java.util.Properties;
 import javax.inject.Named;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import io.github.pustike.inject.bind.Module;
-import junit.framework.TestCase;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * This class is borrowed from Guice project's
@@ -35,23 +40,16 @@ import junit.framework.TestCase;
  * </p>
  * @author jessewilson@google.com (Jesse Wilson)
  */
-public class NamesTest extends TestCase {
+public class NamesTest {
     @Named("foo")
     private String foo;
-    private Named namedFoo;
-
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        namedFoo = getClass().getDeclaredField("foo").getAnnotation(Named.class);
-    }
 
     /**
      * Fails unless {@code expected.equals(actual)}, {@code
      * actual.equals(expected)} and their hash codes are equal. This is useful
      * for testing the equals method itself.
      */
-    public static void assertEqualsBothWays(Object expected, Object actual) {
+    private static void assertEqualsBothWays(Object expected, Object actual) {
         assertNotNull(expected);
         assertNotNull(actual);
         assertEquals("expected.equals(actual)", actual, expected);
@@ -62,14 +60,13 @@ public class NamesTest extends TestCase {
     /**
      * Fails unless {@code object} doesn't equal itself when reserialized.
      */
-    public static void assertEqualWhenReserialized(Object object)
-            throws IOException {
+    private static void assertEqualWhenReserialized(Object object) throws IOException {
         Object reserialized = reserialize(object);
         assertEquals(object, reserialized);
         assertEquals(object.hashCode(), reserialized.hashCode());
     }
 
-    public static <E> E reserialize(E original) throws IOException {
+    private static <E> E reserialize(E original) throws IOException {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             new ObjectOutputStream(out).writeObject(original);
@@ -82,16 +79,20 @@ public class NamesTest extends TestCase {
         }
     }
 
-    public void testConsistentEqualsAndHashcode() {
+    @Test
+    public void testConsistentEqualsAndHashcode() throws NoSuchFieldException {
+        Named namedFoo = getClass().getDeclaredField("foo").getAnnotation(Named.class);
         Named actual = Names.named("foo");
         assertEqualsBothWays(namedFoo, actual);
         assertEquals(namedFoo.toString(), actual.toString());
     }
 
+    @Test
     public void testNamedIsSerializable() throws IOException {
         assertEqualWhenReserialized(Names.named("foo"));
     }
 
+    @Test
     public void testBindPropertiesUsingProperties() {
         final Properties teams = new Properties();
         teams.setProperty("SanJose", "Sharks");
@@ -104,6 +105,7 @@ public class NamesTest extends TestCase {
         assertEquals("Oilers", injector.getInstance(BindingKey.of(String.class, "Edmonton")));
     }
 
+    @Test
     public void testBindPropertiesUsingMap() {
         final Map<String, String> properties = new HashMap<>();
         properties.put("SanJose", "Sharks");
@@ -116,6 +118,7 @@ public class NamesTest extends TestCase {
         assertEquals("Oilers", injector.getInstance(BindingKey.of(String.class, "Edmonton")));
     }
 
+    @Test
     public void testBindPropertiesIncludesInheritedProperties() {
         Properties defaults = new Properties();
         defaults.setProperty("Edmonton", "Eskimos");
@@ -134,7 +137,7 @@ public class NamesTest extends TestCase {
 
         try {
             injector.getInstance(BindingKey.of(String.class, "Calgary"));
-            fail();
+            Assert.fail();
         } catch (RuntimeException expected) {
         }
     }

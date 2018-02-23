@@ -11,25 +11,26 @@ Following are some of its key features:
 * Hierarchical Injector support
 * Optional dependencies using ```@Nullable``` or ```Optional<T>```
 * BindingListener: useful for performing further configurations
-* Only ~45kB in size and no external dependencies
+* Events to allow publish-subscribe style communication between components
+* Only ~55kB in size and no external dependencies
 * It requires Java 8 or higher.
 
 **Documentation:** [Latest javadocs](https://pustike.github.io/pustike-inject/docs/latest/api/)
 
-**Latest Release:** The most recent release is v1.3.0 (2017-12-18).
+**Latest Release:** The most recent release is v1.4.0 (2018-02-23).
 
 To add a dependency using Maven, use the following:
 ```xml
 <dependency>
     <groupId>io.github.pustike</groupId>
     <artifactId>pustike-inject</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```
 dependencies {
-    compile 'io.github.pustike:pustike-inject:1.3.0'
+    compile 'io.github.pustike:pustike-inject:1.4.0'
 }
 ```
 
@@ -303,6 +304,7 @@ public class HomeController {
     }
 }
 ```
+
 ##### Injection Listener
 Injection Listener listens for new instances created by injector, it is invoked after the instance's fields and methods are injected. It is useful for performing post-injection initialization.
 
@@ -313,20 +315,21 @@ This is an interface for loading injection points (fields and methods/constructo
  Custom implementations can be created to use an advanced backing cache to store these injection points. Following is a sample custom injection point loader that uses [Caffeine](https://github.com/ben-manes/caffeine) for caching injection points.
   ```java
   public class CaffeineInjectionPointLoader implements InjectionPointLoader {
-    private final LoadingCache<Class<?>, List<InjectionPoint<Object>>> injectionPointCache;
+    private final Cache<Class<?>, List<InjectionPoint<Object>>> cache;
 
     public CaffeineInjectionPointLoader() {
-      this.injectionPointCache = Caffeine.newBuilder().weakValues().build(this::createInjectionPoints);
+      this.cache = Caffeine.newBuilder().weakValues().build();
     }
 
     @Override
-    public List<InjectionPoint<Object>> getInjectionPoints(Class<?> clazz) {
-      return injectionPointCache.get(clazz);
+    public List<InjectionPoint<Object>> getInjectionPoints(Class<?> clazz,
+        Function<Class<?>, List<InjectionPoint<Object>>> creator) {
+      return cache.get(clazz);
     }
 
     @Override
     public void invalidateAll() {
-      injectionPointCache.invalidateAll();
+      cache.invalidateAll();
     }
   }
   ```
@@ -336,6 +339,44 @@ This is an interface for loading injection points (fields and methods/constructo
      Iterable<Module> modules = ...
      Injector injector = Injectors.create(injectionPointLoader, modules);
   ```
+
+##### Events
+```EventBus``` allows publish-subscribe style communication between components, managed by the injector, without requiring them to explicitly register with one another (i.e. no compile-time dependency is required between them).
+
+* Configuring with EventBus Module
+When creating the injector, the event bus module should be included as shown below. It binds the EventBus type in ```Singleton``` scope and adds a ```BindingListener``` to find all observer methods.
+```java
+Injector injector = Injectors.create(EventBus.createModule(), otherModules);
+```
+
+* Publishing events
+The event bus allows publishing any object as an event. It dispatches the given event object to all observers using ```perThreadDispatchQueue```. It queues events that are posted reentrantly on a thread that is already dispatching an event, guaranteeing that all events posted on a single thread are dispatched to all observers in the order they are posted.
+All matching observers are notified of this event on the same thread that posts the event. This yields a breadth-first dispatch order on each thread, i.e. all observers of a single event A will be called before any observers of any events B and C that are posted to the event bus by the observers to A.
+```java
+@Inject
+private EventBus eventBus;
+
+private void createOrder(Order order) {
+    eventBus.publish(new OrderCreatedEvent(order));
+}
+```
+
+* Observing events
+An observer method acts as event consumer, by observing events of a specific type. This method will be notified of an event if the event object is matching to the observed event type.
+
+```@Observes``` annotation marks a method as an event observer. The type of event will be indicated by the method's first (and only) parameter. If this annotation is applied to methods with zero parameters, or more than one parameter, the object containing the method will not be able to register for event delivery from the ```EventBus```.
+```java
+@Observes
+private void onOrderCreatedEvent(OrderCreatedEvent event) {
+    Order order = event.getOrder();
+}
+```
+
+* Closing the EventBus
+All registered observer methods can be be cleared from internal cache using the close method. This should typically be called, before the injector itself is being disposed.
+```java
+injector.getInstance(EventBus.class).close();
+```
 
 Other JSR-330 spec Implementations
 ---------------------------------

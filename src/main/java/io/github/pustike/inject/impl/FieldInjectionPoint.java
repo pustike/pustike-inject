@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016-2017 the original author or authors.
+ * Copyright (C) 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,20 +17,22 @@ package io.github.pustike.inject.impl;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Optional;
 
 import io.github.pustike.inject.Injector;
 import io.github.pustike.inject.NoSuchBindingException;
-import io.github.pustike.inject.bind.InjectionPoint;
+import io.github.pustike.inject.spi.InjectionPoint;
 
 final class FieldInjectionPoint<T> implements InjectionPoint<T> {
-    private final BindingTarget<T> bindingTarget;
+    private final InjectionTarget<T> injectionTarget;
     private final Field field;
     private boolean isStaticFieldInjected;
 
     FieldInjectionPoint(Field field) {
         this.field = field;
-        this.bindingTarget = new BindingTarget<>(field.getGenericType(), field.getAnnotations());
+        this.injectionTarget = new InjectionTarget<>(field.getGenericType(), field.getAnnotations());
+        if (!field.isAccessible()) {
+            field.setAccessible(true);
+        }
     }
 
     @Override
@@ -38,25 +40,19 @@ final class FieldInjectionPoint<T> implements InjectionPoint<T> {
         if (isStaticFieldInjected) {
             return null; // do not set a static field more than once!
         }
-        Optional<T> optional = injector.getIfPresent(bindingTarget.getKey());
-        Object value = bindingTarget.isOptionalType() ? optional : optional.orElse(null);
-        if (value == null && bindingTarget.isNotNullable()) {
-            throw new NoSuchBindingException("Injecting null value is not allowed into " + toString());
-        }
+        Object value = injectionTarget.getValue(injector);
         try {
             isStaticFieldInjected = Modifier.isStatic(field.getModifiers());
-            if (!field.isAccessible()) {
-                field.setAccessible(true);
-            }
             field.set(instance, value);
             return instance;
-        } catch (Exception e) {
+        } catch (IllegalAccessException e) {
             throw new RuntimeException("error when injecting dependency into " + toString(), e);
         }
     }
 
     @Override
     public String toString() {
-        return "field=" + field + " -> " + bindingTarget.getKey();
+        return "field:\n" + field.getDeclaringClass().getTypeName() + '.' + field.getName()
+                + " -> " + injectionTarget.getKey();
     }
 }

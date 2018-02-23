@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016-2017 the original author or authors.
+ * Copyright (C) 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,6 @@ final class Binding<T> {
     private final Provider<T> provider;
     private final Scope scope;
     private final boolean multiBinder;
-    private DefaultInjector injector;
     private Provider<T> scopedProvider;
     private boolean providerInjected;
 
@@ -54,14 +53,13 @@ final class Binding<T> {
 
     void postConfiguration(DefaultInjector injector) {
         if (multiBinder) {
-            ((MultiBindingProvider) provider).setInjector(injector);
+            ((MultiBindingProvider) provider).postConfiguration(injector);
         } else {
-            this.injector = injector;
             if (provider instanceof InstanceProvider) {
                 ((InstanceProvider) provider).setInjector(injector);
                 this.providerInjected = true;// internal instanceProvider doesn't require any dependency injection
             }
-            this.scopedProvider = scope.scope(bindingKey, this::createInstance);
+            this.scopedProvider = scope.scope(bindingKey, () -> createInstance(injector));
             if (scope.toString().equals(Scopes.EAGER_SINGLETON)) {
                 this.scopedProvider.get();
             }
@@ -73,7 +71,7 @@ final class Binding<T> {
                 targetKey.isProviderKey() ? this.scopedProvider : this.scopedProvider.get();
     }
 
-    private T createInstance() {
+    private T createInstance(DefaultInjector injector) {
         // inject dependencies into the provider instance as well!
         if (!providerInjected) {
             injector.injectMembers(provider);
@@ -100,14 +98,14 @@ final class Binding<T> {
             return binding.multiBinder && bindingList.addAll(((MultiBindingProvider<T>) binding.provider).bindingList);
         }
 
-        private void setInjector(DefaultInjector injector) {
+        private void postConfiguration(DefaultInjector injector) {
             for (Binding<T> binding : bindingList) {
                 binding.postConfiguration(injector);
             }
         }
 
         private Collection<?> getInstance(BindingKey<?> targetKey) {
-            List<Object> instanceList = new ArrayList<>();
+            List<Object> instanceList = new ArrayList<>(bindingList.size());
             for (Binding<T> binding : bindingList) {
                 instanceList.add(binding.getInstance(targetKey));
             }

@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016-2017 the original author or authors.
+ * Copyright (C) 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -101,22 +101,6 @@ public final class BindingKey<T> {
      */
     public Class<T> getType() {
         return type;
-    }
-
-    /**
-     * Get the the qualifier annotation specified in this key.
-     * @return the qualifier annotation
-     */
-    private Annotation getAnnotation() {
-        return annotation;
-    }
-
-    /**
-     * Get the the type of qualifier annotation specified in this key.
-     * @return the type of qualifier annotation
-     */
-    private Class<? extends Annotation> getAnnotationType() {
-        return annotationType;
     }
 
     /**
@@ -218,19 +202,19 @@ public final class BindingKey<T> {
     }
 
     private static String toString(BindingKey<?> key) {
-        String typeName = key.getType().getName();
-        typeName = key.providerKey ? "Provider<" + typeName + ">" : typeName;
-        typeName = key.multiBinding ? "List<" + typeName + ">" : typeName;
+        String typeName = key.type.getName();
+        typeName = key.providerKey ? "Provider<" + typeName + '>' : typeName;
+        typeName = key.multiBinding ? "List<" + typeName + '>' : typeName;
         StringBuilder sb = new StringBuilder(typeName);
-        Annotation annotation = key.getAnnotation();
+        Annotation annotation = key.annotation;
         if (annotation != null) {
             if (annotation instanceof Named) {
-                sb.append("@Named(\"").append(((Named) annotation).value()).append("\")");
+                sb.append(" @Named(\"").append(((Named) annotation).value()).append("\")");
             } else {
-                sb.append('@').append(annotation);
+                sb.append(" @").append(annotation.annotationType().getName());
             }
-        } else if (key.getAnnotationType() != null) {
-            sb.append('@').append(key.getAnnotationType());
+        } else if (key.annotationType != null) {
+            sb.append(" @").append(key.annotationType.getName());
         }
         return sb.toString();
     }

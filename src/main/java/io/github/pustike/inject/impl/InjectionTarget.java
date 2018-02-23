@@ -26,13 +26,14 @@ import javax.inject.Provider;
 import javax.inject.Qualifier;
 
 import io.github.pustike.inject.BindingKey;
+import io.github.pustike.inject.Injector;
 
-final class BindingTarget<T> {
+final class InjectionTarget<T> {
     private final BindingKey<T> bindingKey;
     private final boolean nullable;
     private boolean optionalType;
 
-    BindingTarget(Type genericType, Annotation[] annotations) {
+    InjectionTarget(Type genericType, Annotation[] annotations) {
         this.bindingKey = createBindingKey(genericType, annotations);
         this.nullable = allowsNullValue(annotations);
     }
@@ -41,22 +42,20 @@ final class BindingTarget<T> {
         return bindingKey;
     }
 
-    boolean isNotNullable() {
-        return !nullable;
+    Object getValue(Injector injector) {
+        return optionalType ? injector.getIfPresent(bindingKey) :
+                nullable ? injector.getIfPresent(bindingKey).orElse(null) :
+                        injector.getInstance(bindingKey);
     }
 
-    boolean isOptionalType() {
-        return optionalType;
-    }
-
-    static BindingTarget<?>[] createParameterTargets(Executable executable) {
+    static InjectionTarget<?>[] createParameterTargets(Executable executable) {
         Type[] parameterTypes = executable.getGenericParameterTypes();
         Annotation[][] annotations = executable.getParameterAnnotations();
-        BindingTarget<?>[] bindingTargets = new BindingTarget[parameterTypes.length];
+        InjectionTarget<?>[] injectionTargets = new InjectionTarget[parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; i++) {
-            bindingTargets[i] = new BindingTarget<>(parameterTypes[i], annotations[i]);
+            injectionTargets[i] = new InjectionTarget<>(parameterTypes[i], annotations[i]);
         }
-        return bindingTargets;
+        return injectionTargets;
     }
 
     @SuppressWarnings("unchecked")

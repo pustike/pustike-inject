@@ -1,6 +1,20 @@
 Pustike Inject Changes
 ======================
 
+Release v1.4.0 (2018-02-23)
+--------------------------
+* New Feature: Events support to allow publish-subscribe style communication between components,
+    managed by the injector, without requiring them to explicitly register with one another.
+* Create a SPI (Service Provider Interfaces) package and moved following interfaces from ```bind``` package:
+  ```BindingListener```, ```InjectionListener```, ```InjectionPoint```, ```InjectionPointLoader```.
+* ```BindingListener``` is improved to include the ```BindingKey``` for which a binding has been registered.
+* ```InjectionPointLoader``` changes:
+  - Removed method ```createInjectionPoints``` which had a cyclic dependency with ```impl``` package
+  - A function ```injectionPointCreator``` is passed to the method ```getInjectionPoints```
+* Fixed a regression introduced in v1.3.0, which ignored ```defaultScope``` applied in the module.
+* Added check to ensure that, Bindings can be obtained only after the Injector is fully configured.
+* Change ```toString()``` implementation of @Named annotation to quote string values when using Java 9.
+
 Release v1.3.0 (2017-12-18)
 --------------------------
 * Added support for optional dependencies using ```@Nullable``` and ```Optional<T>```

@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016-2017 the original author or authors.
+ * Copyright (C) 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,23 +17,26 @@ package io.github.pustike.inject.impl;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Optional;
 import javax.inject.Inject;
 
 import io.github.pustike.inject.Injector;
 import io.github.pustike.inject.NoSuchBindingException;
-import io.github.pustike.inject.bind.InjectionPoint;
+import io.github.pustike.inject.spi.InjectionPoint;
 
 final class ExecutableInjectionPoint<T> implements InjectionPoint<T> {
     private final Executable executable;
-    private final BindingTarget<?>[] bindingTargets;
+    private final InjectionTarget<?>[] injectionTargets;
     private boolean isStaticMethodInjected;
 
     ExecutableInjectionPoint(Executable executable) {
         this.executable = executable;
-        this.bindingTargets = BindingTarget.createParameterTargets(executable);
+        this.injectionTargets = InjectionTarget.createParameterTargets(executable);
+        if (!executable.isAccessible()) {
+            executable.setAccessible(true);
+        }
     }
 
     static <T> InjectionPoint<T> create(Class<? extends T> targetType) {
@@ -61,21 +64,11 @@ final class ExecutableInjectionPoint<T> implements InjectionPoint<T> {
         if (isStaticMethodInjected) {
             return null; // do not invoke a static method more than once!
         }
-        Object[] parameters = new Object[bindingTargets.length];
+        Object[] parameters = new Object[injectionTargets.length];
         for (int i = 0; i < parameters.length; i++) {
-            BindingTarget<?> bindingTarget = bindingTargets[i];
-            Optional<?> optional = injector.getIfPresent(bindingTarget.getKey());
-            Object value = bindingTarget.isOptionalType() ? optional : optional.orElse(null);
-            if (value == null && bindingTarget.isNotNullable()) {
-                throw new NoSuchBindingException("Parameter key: " + bindingTarget.getKey()
-                        + " doesn't allow null value in \n " + toString());
-            }
-            parameters[i] = value;
+            parameters[i] = injectionTargets[i].getValue(injector);
         }
         try {
-            if (!executable.isAccessible()) {
-                executable.setAccessible(true);
-            }
             if (executable instanceof Constructor) {
                 return ((Constructor) executable).newInstance(parameters);
             } else if (executable instanceof Method) {
@@ -83,7 +76,7 @@ final class ExecutableInjectionPoint<T> implements InjectionPoint<T> {
                 return ((Method) executable).invoke(instance, parameters);
             }
             return null;
-        } catch (Exception e) {
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException("error when injecting dependency into " + toString(), e);
         }
     }
@@ -92,12 +85,12 @@ final class ExecutableInjectionPoint<T> implements InjectionPoint<T> {
     public String toString() {
         StringBuilder toStringBuilder = new StringBuilder();
         if (executable instanceof Constructor) {
-            toStringBuilder.append("constructor=").append(executable);
+            toStringBuilder.append("constructor:\n").append(executable.getName());
         } else if (executable instanceof Method) {
-            toStringBuilder.append("method=").append(executable);
+            toStringBuilder.append("method:\n").append(executable.getName());
         }
-        for (BindingTarget<?> bindingTarget : bindingTargets) {
-            toStringBuilder.append("\n -> ").append(bindingTarget.getKey());
+        for (InjectionTarget<?> injectionTarget : injectionTargets) {
+            toStringBuilder.append("\n -> ").append(injectionTarget.getKey());
         }
         return toStringBuilder.toString();
     }

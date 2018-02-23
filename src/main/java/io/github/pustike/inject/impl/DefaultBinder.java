@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016-2017 the original author or authors.
+ * Copyright (C) 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,12 +31,12 @@ import io.github.pustike.inject.BindingKey;
 import io.github.pustike.inject.Scope;
 import io.github.pustike.inject.bind.AnnotatedBindingBuilder;
 import io.github.pustike.inject.bind.Binder;
-import io.github.pustike.inject.bind.BindingListener;
-import io.github.pustike.inject.bind.InjectionListener;
 import io.github.pustike.inject.bind.LinkedBindingBuilder;
 import io.github.pustike.inject.bind.Module;
 import io.github.pustike.inject.bind.MultiBinder;
 import io.github.pustike.inject.bind.Provides;
+import io.github.pustike.inject.spi.BindingListener;
+import io.github.pustike.inject.spi.InjectionListener;
 
 /**
  * Default implementation of the {@link Binder binder}.
@@ -92,7 +92,7 @@ final class DefaultBinder implements Binder {
     }
 
     private <T> DefaultBindingBuilder<T> addNewBindingBuilder(BindingKey<T> key, boolean multiBinder) {
-        DefaultBindingBuilder<T> builder = new DefaultBindingBuilder<>(key, this, multiBinder);
+        DefaultBindingBuilder<T> builder = new DefaultBindingBuilder<>(key, this, defaultScope, multiBinder);
         bindingBuilderList.add(builder);
         return builder;
     }
@@ -128,7 +128,7 @@ final class DefaultBinder implements Binder {
         return scope;
     }
 
-    Scope getScope(Annotation[] annotations) {
+    Scope getScope(Annotation[] annotations, Scope defaultScope) {
         Class<? extends Annotation> scopeAnnotation = getScopeAnnotation(annotations);
         return scopeAnnotation != null ? getScope(scopeAnnotation.getName()) : defaultScope;
     }
@@ -156,12 +156,11 @@ final class DefaultBinder implements Binder {
         bindingListenerMatcherMap.put(bindingListener, typeMatcher);
     }
 
-    void visitTypeBindingListeners(Class<?> instanceType) {
-        Map<BindingListener, Predicate<Class<?>>> typeBindingListenerMap = bindingListenerMatcherMap;
-        if (!typeBindingListenerMap.isEmpty()) {
-            for (Map.Entry<BindingListener, Predicate<Class<?>>> mapEntry : typeBindingListenerMap.entrySet()) {
+    void visitTypeBindingListeners(BindingKey<?> bindingKey, Class<?> instanceType) {
+        if (!bindingListenerMatcherMap.isEmpty()) {
+            for (Map.Entry<BindingListener, Predicate<Class<?>>> mapEntry : bindingListenerMatcherMap.entrySet()) {
                 if (mapEntry.getValue().test(instanceType)) {
-                    mapEntry.getKey().afterBinding(instanceType);
+                    mapEntry.getKey().afterBinding(bindingKey, instanceType);
                 }
             }
         }
@@ -183,8 +182,8 @@ final class DefaultBinder implements Binder {
             throw new RuntimeException("@Provides method should not have 'void' as return type : " + method);
         }
         Annotation[] annotations = method.getAnnotations();
-        BindingKey<?> bindingKey = new BindingTarget<>(returnType, annotations).getKey();
-        bind(bindingKey).toProvider(InstanceProvider.from(method, module)).in(getScope(annotations));
+        BindingKey<?> bindingKey = new InjectionTarget<>(returnType, annotations).getKey();
+        bind(bindingKey).toProvider(InstanceProvider.from(method, module)).in(getScope(annotations, defaultScope));
     }
 
     void clear() {

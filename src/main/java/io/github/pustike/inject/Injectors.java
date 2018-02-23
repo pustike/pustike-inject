@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016-2017 the original author or authors.
+ * Copyright (C) 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,9 +17,9 @@ package io.github.pustike.inject;
 
 import java.util.Arrays;
 
-import io.github.pustike.inject.bind.InjectionPointLoader;
 import io.github.pustike.inject.bind.Module;
 import io.github.pustike.inject.impl.DefaultInjector;
+import io.github.pustike.inject.spi.InjectionPointLoader;
 
 /**
  * This class provides factory methods to create {@link Injector} with bindings specified by {@link Module modules}

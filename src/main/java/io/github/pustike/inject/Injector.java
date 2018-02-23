@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016-2017 the original author or authors.
+ * Copyright (C) 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@ import io.github.pustike.inject.bind.Module;
 /**
  * The injector is used to create objects with all their dependencies (fields and constructor/methods) injected.
  * Injector is configured with bindings specified by {@link Module modules}. These bindings are scanned to identify
- * {@link io.github.pustike.inject.bind.InjectionPoint}s and are registered with the binding key. When an instance of
+ * {@link io.github.pustike.inject.spi.InjectionPoint}s and are registered with the binding key. When an instance of
  * a type or a binding key is requested, injector returns the instance by creating it and injecting all its
  * declared dependencies.
  * <p>

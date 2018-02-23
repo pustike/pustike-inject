@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016-2017 the original author or authors.
+ * Copyright (C) 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -76,6 +76,7 @@ public final class Names {
 
     private static class NamedImpl implements Named, Serializable {
         private static final long serialVersionUID = 0;
+        private static final boolean isJava8 = System.getProperty("java.version", "1.8").startsWith("1.8");
         private final String value;
 
         NamedImpl(String value) {
@@ -104,7 +105,8 @@ public final class Names {
 
         @Override
         public String toString() {
-            return "@" + Named.class.getName() + "(value=" + value + ")";
+            // Java 9 onwards, annotations with string values quote them
+            return '@' + Named.class.getName() + "(value=" + (isJava8 ? value : '"' + value + '"') + ')';
         }
 
         @Override

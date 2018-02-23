@@ -45,6 +45,7 @@ final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T>, Mult
             + " to(Constructor), to(Method), to(Provider, Class)";
     private final BindingKey<T> sourceKey;
     private final DefaultBinder binder;
+    private final Scope defaultScope;
     private Annotation sourceAnnotation;
     private Class<? extends Annotation> sourceAnnotationType;
     private Class<? extends T> targetType;
@@ -55,9 +56,10 @@ final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T>, Mult
     private final List<Binding<T>> bindingList;
     private boolean addingBinding;
 
-    DefaultBindingBuilder(BindingKey<T> key, DefaultBinder binder, boolean multiBinder) {
+    DefaultBindingBuilder(BindingKey<T> key, DefaultBinder binder, Scope defaultScope, boolean multiBinder) {
         this.sourceKey = key;
         this.binder = binder;
+        this.defaultScope = defaultScope;
         this.multiBinder = multiBinder;
         this.bindingList = new ArrayList<>();
     }
@@ -206,13 +208,13 @@ final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T>, Mult
         injector.register(bindingKey, binding);
         // call matching TypeBindingListeners for this binding targetType
         Class<? extends T> instanceType = targetType == null ? sourceKey.getType() : targetType;
-        binder.visitTypeBindingListeners(instanceType);
+        binder.visitTypeBindingListeners(bindingKey, instanceType);
     }
 
     private Scope getScope() {
         if (scope == null) {
             Class<?> instanceType = targetType != null ? targetType : sourceKey.getType();
-            scope = binder.getScope(instanceType.getDeclaredAnnotations());
+            scope = binder.getScope(instanceType.getDeclaredAnnotations(), defaultScope);
         }
         if (scope == null) {
             throw new IllegalStateException("Neither of the methods " + SCOPE_METHOD_LIST

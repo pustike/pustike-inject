@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016-2017 the original author or authors.
+ * Copyright (C) 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,15 +24,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import javax.inject.Inject;
 
-import io.github.pustike.inject.bind.InjectionPoint;
-import io.github.pustike.inject.bind.InjectionPointLoader;
+import io.github.pustike.inject.spi.InjectionPoint;
+import io.github.pustike.inject.spi.InjectionPointLoader;
 
 /**
  * Default Injection Point Loader.
  */
-public final class DefaultInjectionPointLoader implements InjectionPointLoader {
+final class DefaultInjectionPointLoader implements InjectionPointLoader {
     private final Map<Class<?>, List<InjectionPoint<Object>>> injectionPointCache;
 
     DefaultInjectionPointLoader() {
@@ -40,8 +41,9 @@ public final class DefaultInjectionPointLoader implements InjectionPointLoader {
     }
 
     @Override
-    public List<InjectionPoint<Object>> getInjectionPoints(Class<?> clazz) {
-        return injectionPointCache.computeIfAbsent(clazz, this::createInjectionPoints);
+    public List<InjectionPoint<Object>> getInjectionPoints(Class<?> clazz,
+            Function<Class<?>, List<InjectionPoint<Object>>> creator) {
+        return injectionPointCache.computeIfAbsent(clazz, creator);
     }
 
     @Override
@@ -49,13 +51,12 @@ public final class DefaultInjectionPointLoader implements InjectionPointLoader {
         injectionPointCache.clear();
     }
 
-    public static List<InjectionPoint<Object>> doCreateInjectionPoints(final Class<?> targetClass) {
+    static List<InjectionPoint<Object>> doCreateInjectionPoints(final Class<?> targetClass) {
         List<InjectionPoint<Object>> injectionPointList = new LinkedList<>();
         Set<Integer> visitedMethodHashCodeSet = new HashSet<>();
-        for (Class clazz = targetClass; clazz != Object.class; clazz = clazz.getSuperclass()) {
+        for (Class<?> clazz = targetClass; clazz != Object.class; clazz = clazz.getSuperclass()) {
             int index = 0, staticIndex = 0;
-            Field[] fields = clazz.getDeclaredFields();
-            for (Field field : fields) {
+            for (Field field : clazz.getDeclaredFields()) {
                 if (field.getDeclaredAnnotation(Inject.class) != null) {
                     if (Modifier.isStatic(field.getModifiers())) {
                         injectionPointList.add(staticIndex++, new FieldInjectionPoint<>(field));
@@ -65,8 +66,7 @@ public final class DefaultInjectionPointLoader implements InjectionPointLoader {
                     index++;
                 }
             }
-            Method[] methods = clazz.getDeclaredMethods();
-            for (Method method : methods) {
+            for (Method method : clazz.getDeclaredMethods()) {
                 int hashCode = computeHashCode(clazz, method);
                 if (visitedMethodHashCodeSet.contains(hashCode)) {
                     continue;

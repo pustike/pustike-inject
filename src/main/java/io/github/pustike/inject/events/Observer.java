@@ -19,7 +19,7 @@ import java.lang.reflect.Method;
 
 import io.github.pustike.inject.BindingKey;
 
-class Observer {
+final class Observer {
     private final BindingKey<?> bindingKey;
     private final Method method;
 

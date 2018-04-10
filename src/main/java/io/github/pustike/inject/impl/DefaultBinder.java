@@ -19,11 +19,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import javax.inject.Singleton;
 
@@ -51,13 +51,14 @@ final class DefaultBinder implements Binder {
     DefaultBinder(DefaultInjector injector) {
         this.injector = injector;
         bindingBuilderList = new ArrayList<>();
-        annotationScopeMap = new ConcurrentHashMap<>();
+        annotationScopeMap = new HashMap<>();
         bindingListenerMatcherMap = new LinkedHashMap<>();
         defaultScope = Scopes.createPerCallScope();
         // reject binding default scopes to something else, by registering them first!
         annotationScopeMap.put(Scopes.PER_CALL, defaultScope);
-        annotationScopeMap.put(Scopes.EAGER_SINGLETON, Scopes.createSingletonScope());
-        annotationScopeMap.put(Singleton.class.getName(), Scopes.createSingletonScope());
+        Scope singletonScope = Scopes.createSingletonScope();
+        annotationScopeMap.put(Scopes.EAGER_SINGLETON, singletonScope);
+        annotationScopeMap.put(Singleton.class.getName(), singletonScope);
     }
 
     void configure(Iterable<Module> modules) {
@@ -167,7 +168,7 @@ final class DefaultBinder implements Binder {
     }
 
     private void configureProvidesBindings(Module module) {
-        for (Class<?> c = module.getClass(); c != Object.class; c = c.getSuperclass()) {
+        for (Class<?> c = module.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
             for (Method method : c.getDeclaredMethods()) {
                 if (method.isAnnotationPresent(Provides.class)) {
                     addProvidesBinding(module, method);

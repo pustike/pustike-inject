@@ -1,6 +1,10 @@
 Pustike Inject Changes
 ======================
 
+Release v1.4.1 (2018-04-10)
+--------------------------
+* Improvements and bug fixes.
+
 Release v1.4.0 (2018-02-23)
 --------------------------
 * New Feature: Events support to allow publish-subscribe style communication between components,
@@ -13,7 +17,7 @@ Release v1.4.0 (2018-02-23)
   - A function ```injectionPointCreator``` is passed to the method ```getInjectionPoints```
 * Fixed a regression introduced in v1.3.0, which ignored ```defaultScope``` applied in the module.
 * Added check to ensure that, Bindings can be obtained only after the Injector is fully configured.
-* Change ```toString()``` implementation of @Named annotation to quote string values when using Java 9.
+* Change ```toString()``` implementation of ```@Named``` annotation to quote string values when using Java 9.
 
 Release v1.3.0 (2017-12-18)
 --------------------------

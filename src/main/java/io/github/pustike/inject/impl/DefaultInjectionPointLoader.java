@@ -18,11 +18,11 @@ package io.github.pustike.inject.impl;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import javax.inject.Inject;
@@ -53,32 +53,25 @@ final class DefaultInjectionPointLoader implements InjectionPointLoader {
 
     static List<InjectionPoint<Object>> doCreateInjectionPoints(final Class<?> targetClass) {
         List<InjectionPoint<Object>> injectionPointList = new LinkedList<>();
-        Set<Integer> visitedMethodHashCodeSet = new HashSet<>();
-        for (Class<?> clazz = targetClass; clazz != Object.class; clazz = clazz.getSuperclass()) {
+        Collection<Integer> visitedMethodHashCodes = new HashSet<>();
+        for (Class<?> clazz = targetClass; clazz != null && clazz != Object.class; clazz = clazz.getSuperclass()) {
             int index = 0, staticIndex = 0;
             for (Field field : clazz.getDeclaredFields()) {
                 if (field.getDeclaredAnnotation(Inject.class) != null) {
-                    if (Modifier.isStatic(field.getModifiers())) {
-                        injectionPointList.add(staticIndex++, new FieldInjectionPoint<>(field));
-                    } else {
-                        injectionPointList.add(index, new FieldInjectionPoint<>(field));
-                    }
+                    final int idx = Modifier.isStatic(field.getModifiers()) ? staticIndex++ : index;
+                    injectionPointList.add(idx, new FieldInjectionPoint<>(field));
                     index++;
                 }
             }
             for (Method method : clazz.getDeclaredMethods()) {
                 int hashCode = computeHashCode(clazz, method);
-                if (visitedMethodHashCodeSet.contains(hashCode)) {
-                    continue;
-                }
-                visitedMethodHashCodeSet.add(hashCode);
-                if (method.getDeclaredAnnotation(Inject.class) != null) {
-                    if (Modifier.isStatic(method.getModifiers())) {
-                        injectionPointList.add(staticIndex++, new ExecutableInjectionPoint<>(method));
-                    } else {
-                        injectionPointList.add(index, new ExecutableInjectionPoint<>(method));
+                if (!visitedMethodHashCodes.contains(hashCode)) {
+                    visitedMethodHashCodes.add(hashCode);
+                    if (method.getDeclaredAnnotation(Inject.class) != null) {
+                        final int idx = Modifier.isStatic(method.getModifiers()) ? staticIndex++ : index;
+                        injectionPointList.add(idx, new ExecutableInjectionPoint<>(method));
+                        index++;
                     }
-                    index++;
                 }
             }
         }

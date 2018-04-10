@@ -23,7 +23,7 @@ import java.util.Queue;
  * Handler for dispatching events to observers, providing different event ordering guarantees that make sense for
  * different situations.
  */
-class Dispatcher {
+final class Dispatcher {
     // Per-thread queue of events to dispatch.
     private static final ThreadLocal<Queue<EventData>> queue = ThreadLocal.withInitial(ArrayDeque::new);
     // Per-thread dispatch state, used to avoid reentrant event dispatching.

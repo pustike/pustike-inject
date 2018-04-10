@@ -40,21 +40,16 @@ final class ExecutableInjectionPoint<T> implements InjectionPoint<T> {
     }
 
     static <T> InjectionPoint<T> create(Class<? extends T> targetType) {
-        Constructor<?>[] constructors = targetType.getDeclaredConstructors();
-        if (constructors.length == 0) {
-            throw new RuntimeException("No constructors available for type: " + targetType);
-        }
         Constructor<?> defaultConstructor = null;
-        for (Constructor<?> constructor : constructors) {
+        for (Constructor<?> constructor : targetType.getDeclaredConstructors()) {
             if (constructor.isAnnotationPresent(Inject.class)) {
                 return new ExecutableInjectionPoint<>(constructor);
-            }
-            if (constructor.getParameterCount() == 0) {
+            } else if (constructor.getParameterCount() == 0) {
                 defaultConstructor = constructor;
             }
         }
         if (defaultConstructor == null) {
-            throw new RuntimeException("No constructors available for type: " + targetType);
+            throw new RuntimeException("default constructor is not available for type: " + targetType);
         }
         return new ExecutableInjectionPoint<>(defaultConstructor);
     }

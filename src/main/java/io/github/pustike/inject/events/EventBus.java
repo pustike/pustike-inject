@@ -33,7 +33,7 @@ import io.github.pustike.inject.bind.Module;
  *
  * An instance of the EventBus can be then obtained from Injector or by declaring it as a dependency to be injected.
  */
-public class EventBus {
+public final class EventBus {
     private final Injector injector;
     private final ObserverRegistry registry;
     private final Dispatcher dispatcher;

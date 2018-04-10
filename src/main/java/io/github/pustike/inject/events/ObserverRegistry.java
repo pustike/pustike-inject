@@ -28,7 +28,7 @@ import java.util.Objects;
 
 import io.github.pustike.inject.BindingKey;
 
-class ObserverRegistry {
+final class ObserverRegistry {
     private final Map<Integer, List<Observer>> eventObserversMap;
 
     ObserverRegistry() {
@@ -42,7 +42,7 @@ class ObserverRegistry {
      */
     private static Iterable<Method> findObserverMethods(Class<?> targetClass) {
         Map<Integer, Method> observerMethods = new HashMap<>();
-        for (Class<?> clazz = targetClass; clazz != Object.class; clazz = clazz.getSuperclass()) {
+        for (Class<?> clazz = targetClass; clazz != null && clazz != Object.class; clazz = clazz.getSuperclass()) {
             for (Method method : clazz.getDeclaredMethods()) {
                 if (method.isAnnotationPresent(Observes.class) && !method.isSynthetic()) {
                     Class<?>[] parameterTypes = method.getParameterTypes();

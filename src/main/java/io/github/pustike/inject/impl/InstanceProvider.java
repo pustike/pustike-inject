@@ -91,6 +91,6 @@ final class InstanceProvider<T> implements Provider<T> {
         } else if (executable != null) {
             return new ExecutableInjectionPoint<>(executable);
         }
-        throw new RuntimeException("injection point can not be created with the parameters provided!");
+        throw new RuntimeException("injection point can not be created using parameters provided!");
     }
 }

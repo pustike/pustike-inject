@@ -40,14 +40,13 @@ final class FieldInjectionPoint<T> implements InjectionPoint<T> {
         if (isStaticFieldInjected) {
             return null; // do not set a static field more than once!
         }
-        Object value = injectionTarget.getValue(injector);
         try {
+            field.set(instance, injectionTarget.getValue(injector));
             isStaticFieldInjected = Modifier.isStatic(field.getModifiers());
-            field.set(instance, value);
-            return instance;
         } catch (IllegalAccessException e) {
             throw new RuntimeException("error when injecting dependency into " + toString(), e);
         }
+        return instance;
     }
 
     @Override

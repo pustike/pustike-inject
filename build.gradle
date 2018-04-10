@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 group 'io.github.pustike'
-version '1.4.0'
+version '1.4.1'
 description 'A JSR-330 spec compliant dependency injection framework'
 
 apply plugin: 'java'

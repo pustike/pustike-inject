@@ -17,22 +17,23 @@ Following are some of its key features:
 
 **Documentation:** [Latest javadocs](https://pustike.github.io/pustike-inject/docs/latest/api/)
 
-**Latest Release:** The most recent release is v1.4.0 (2018-02-23).
+**Latest Release:** The most recent release is v1.4.1 (2018-04-10).
 
 To add a dependency using Maven, use the following:
 ```xml
 <dependency>
     <groupId>io.github.pustike</groupId>
     <artifactId>pustike-inject</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```
 dependencies {
-    compile 'io.github.pustike:pustike-inject:1.4.0'
+    compile 'io.github.pustike:pustike-inject:1.4.1'
 }
 ```
+Or, download the [latest JAR](https://search.maven.org/remote_content?g=io.github.pustike&a=pustike-inject&v=LATEST)
 
 Injector
 -------

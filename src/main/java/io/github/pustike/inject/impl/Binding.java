@@ -43,26 +43,34 @@ final class Binding<T> {
         this.multiBinder = provider instanceof MultiBindingProvider;
     }
 
-    Binding(BindingKey<T> bindingKey, List<Binding<T>> bindingList, Scope scope) {
+    Binding(BindingKey<T> bindingKey, Provider<T> provider, Scope scope, DefaultInjector injector) {
+        this(bindingKey, provider, scope);
+        this.postConfiguration(injector);
+    }
+
+    Binding(BindingKey<T> bindingKey, List<Binding<T>> bindingList, Scope scope, DefaultInjector injector) {
         this(bindingKey, new MultiBindingProvider<>(bindingKey, bindingList), scope);
+        bindingList.forEach(binding -> binding.postConfiguration(injector));
     }
 
     boolean addBinding(Binding<T> binding) {
-        return multiBinder && ((MultiBindingProvider<T>) provider).addBinding(binding);
+        return multiBinder && binding.multiBinder && ((MultiBindingProvider<T>) provider)
+                .addBindings((MultiBindingProvider<T>) binding.provider);
     }
 
-    void postConfiguration(DefaultInjector injector) {
+    private void postConfiguration(DefaultInjector injector) {
+        if (provider instanceof InstanceProvider) {
+            ((InstanceProvider<?>) provider).setInjector(injector);
+            this.providerInjected = true;// internal instanceProvider doesn't require any dependency injection
+        }
+        this.scopedProvider = scope.scope(bindingKey, () -> createInstance(injector));
+    }
+
+    void createIfEagerSingleton() {
         if (multiBinder) {
-            ((MultiBindingProvider) provider).postConfiguration(injector);
-        } else {
-            if (provider instanceof InstanceProvider) {
-                ((InstanceProvider) provider).setInjector(injector);
-                this.providerInjected = true;// internal instanceProvider doesn't require any dependency injection
-            }
-            this.scopedProvider = scope.scope(bindingKey, () -> createInstance(injector));
-            if (scope.toString().equals(Scopes.EAGER_SINGLETON)) {
-                this.scopedProvider.get();
-            }
+            ((MultiBindingProvider<?>) provider).createIfEagerSingleton();
+        } else if (scope instanceof SingletonScope && scope.toString().equals(Scopes.EAGER_SINGLETON)) {
+            this.scopedProvider.get();
         }
     }
 
@@ -89,22 +97,20 @@ final class Binding<T> {
         private final BindingKey<T> bindingKey;
         private final List<Binding<T>> bindingList;
 
-        private MultiBindingProvider(BindingKey<T> bindingKey, List<Binding<T>> bindingList) {
+        MultiBindingProvider(BindingKey<T> bindingKey, List<Binding<T>> bindingList) {
             this.bindingKey = bindingKey;
             this.bindingList = bindingList;
         }
 
-        private boolean addBinding(Binding<T> binding) {
-            return binding.multiBinder && bindingList.addAll(((MultiBindingProvider<T>) binding.provider).bindingList);
+        boolean addBindings(MultiBindingProvider<T> provider) {
+            return bindingList.addAll(provider.bindingList);
         }
 
-        private void postConfiguration(DefaultInjector injector) {
-            for (Binding<T> binding : bindingList) {
-                binding.postConfiguration(injector);
-            }
+        void createIfEagerSingleton() {
+            bindingList.forEach(Binding::createIfEagerSingleton);
         }
 
-        private Collection<?> getInstance(BindingKey<?> targetKey) {
+        Collection<?> getInstance(BindingKey<?> targetKey) {
             List<Object> instanceList = new ArrayList<>(bindingList.size());
             for (Binding<T> binding : bindingList) {
                 instanceList.add(binding.getInstance(targetKey));

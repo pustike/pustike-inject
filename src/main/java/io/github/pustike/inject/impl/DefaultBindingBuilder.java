@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javax.inject.Provider;
-import javax.inject.Singleton;
 
 import io.github.pustike.inject.BindingKey;
 import io.github.pustike.inject.Names;
@@ -150,7 +149,7 @@ final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T>, Mult
 
     @Override
     public void asLazySingleton() {
-        in(binder.getScope(Singleton.class.getName()));
+        in(binder.getScope(Scopes.SINGLETON));
     }
 
     @Override
@@ -203,8 +202,8 @@ final class DefaultBindingBuilder<T> implements AnnotatedBindingBuilder<T>, Mult
         BindingKey<T> bindingKey = sourceAnnotation != null ? BindingKey.of(sourceKey.getType(), sourceAnnotation)
                 : BindingKey.of(sourceKey.getType(), sourceAnnotationType);
         bindingKey = multiBinder ? (BindingKey<T>) bindingKey.toListType() : bindingKey;
-        Binding<T> binding = multiBinder ? new Binding<>(bindingKey, bindingList, getScope())
-                : new Binding<>(bindingKey, getInstanceProvider(), getScope());
+        Binding<T> binding = multiBinder ? new Binding<>(bindingKey, bindingList, getScope(), injector)
+                : new Binding<>(bindingKey, getInstanceProvider(), getScope(), injector);
         injector.register(bindingKey, binding);
         // call matching TypeBindingListeners for this binding targetType
         Class<? extends T> instanceType = targetType == null ? sourceKey.getType() : targetType;

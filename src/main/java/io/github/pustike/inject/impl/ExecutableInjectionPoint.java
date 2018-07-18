@@ -60,15 +60,16 @@ final class ExecutableInjectionPoint<T> implements InjectionPoint<T> {
             return null; // do not invoke a static method more than once!
         }
         Object[] parameters = new Object[injectionTargets.length];
-        for (int i = 0; i < parameters.length; i++) {
+        for (int i = 0, length = parameters.length; i < length; i++) {
             parameters[i] = injectionTargets[i].getValue(injector);
         }
         try {
             if (executable instanceof Constructor) {
-                return ((Constructor) executable).newInstance(parameters);
+                return ((Constructor<?>) executable).newInstance(parameters);
             } else if (executable instanceof Method) {
+                Object result = ((Method) executable).invoke(instance, parameters);
                 isStaticMethodInjected = Modifier.isStatic(executable.getModifiers());
-                return ((Method) executable).invoke(instance, parameters);
+                return result;
             }
             return null;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -78,14 +79,15 @@ final class ExecutableInjectionPoint<T> implements InjectionPoint<T> {
 
     @Override
     public String toString() {
+        final String separator = System.lineSeparator();
         StringBuilder toStringBuilder = new StringBuilder();
         if (executable instanceof Constructor) {
-            toStringBuilder.append("constructor:\n").append(executable.getName());
+            toStringBuilder.append("constructor:").append(separator).append(executable.getName());
         } else if (executable instanceof Method) {
-            toStringBuilder.append("method:\n").append(executable.getName());
+            toStringBuilder.append("method:").append(separator).append(executable.getName());
         }
         for (InjectionTarget<?> injectionTarget : injectionTargets) {
-            toStringBuilder.append("\n -> ").append(injectionTarget.getKey());
+            toStringBuilder.append(separator).append(" -> ").append(injectionTarget.getBindingKey());
         }
         return toStringBuilder.toString();
     }

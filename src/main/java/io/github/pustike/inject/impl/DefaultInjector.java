@@ -73,11 +73,11 @@ public final class DefaultInjector implements Injector {
         // add injector itself as a binding to the registry
         BindingKey<Injector> bindingKey = BindingKey.of(Injector.class);
         injector.register(bindingKey, new Binding<>(bindingKey, () -> injector,
-                binder.getScope(Scopes.EAGER_SINGLETON)));
+                binder.getScope(Scopes.SINGLETON), injector));
         binder.configure(modules);
         // do not allow any further modifications to keyBindingMap
         injector.configured = true;
-        injector.keyBindingMap.values().forEach(binding -> binding.postConfiguration(injector));
+        injector.keyBindingMap.values().forEach(Binding::createIfEagerSingleton);
         binder.clear();// clear them all
         return injector;
     }

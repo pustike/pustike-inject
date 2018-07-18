@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import io.github.pustike.inject.BindingKey;
+import io.github.pustike.inject.utils.ReflectionUtils;
 
 final class ObserverRegistry {
     private final Map<Integer, List<Observer>> eventObserversMap;
@@ -43,7 +44,7 @@ final class ObserverRegistry {
     private static Iterable<Method> findObserverMethods(Class<?> targetClass) {
         Map<Integer, Method> observerMethods = new HashMap<>();
         for (Class<?> clazz = targetClass; clazz != null && clazz != Object.class; clazz = clazz.getSuperclass()) {
-            for (Method method : clazz.getDeclaredMethods()) {
+            for (Method method : ReflectionUtils.getDeclaredMethods(clazz)) {
                 if (method.isAnnotationPresent(Observes.class) && !method.isSynthetic()) {
                     Class<?>[] parameterTypes = method.getParameterTypes();
                     if (parameterTypes.length != 1) {
@@ -75,7 +76,7 @@ final class ObserverRegistry {
     private static int computeEventHashCode(Object eventObject) {
         Class<?> eventClass = eventObject.getClass();
         if (eventObject instanceof Event) {
-            return Objects.hash(eventClass.getName(), ((Event) eventObject).getSourceType().getName());
+            return Objects.hash(eventClass.getName(), ((Event<?>) eventObject).getSourceType().getName());
         }// REVIEW: doesn't support complex generic events!
         return eventClass.getName().hashCode();
     }

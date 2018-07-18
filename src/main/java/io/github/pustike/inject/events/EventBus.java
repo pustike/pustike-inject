@@ -82,7 +82,11 @@ public final class EventBus {
             Object instance = injector.getInstance(observer.getBindingKey());
             observer.getMethod().invoke(instance, event);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+            if (e.getCause() instanceof RuntimeException) {
+                throw (RuntimeException) e.getCause();
+            } else {
+                throw new RuntimeException(e.getCause() != null ? e.getCause() : e);
+            }
         }
     }
 

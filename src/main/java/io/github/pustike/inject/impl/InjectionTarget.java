@@ -35,10 +35,10 @@ final class InjectionTarget<T> {
 
     InjectionTarget(Type genericType, Annotation[] annotations) {
         this.bindingKey = createBindingKey(genericType, annotations);
-        this.nullable = allowsNullValue(annotations);
+        this.nullable = isNullable(annotations);
     }
 
-    BindingKey<T> getKey() {
+    BindingKey<T> getBindingKey() {
         return bindingKey;
     }
 
@@ -52,7 +52,7 @@ final class InjectionTarget<T> {
         Type[] parameterTypes = executable.getGenericParameterTypes();
         Annotation[][] annotations = executable.getParameterAnnotations();
         InjectionTarget<?>[] injectionTargets = new InjectionTarget[parameterTypes.length];
-        for (int i = 0; i < parameterTypes.length; i++) {
+        for (int i = 0, length = parameterTypes.length; i < length; i++) {
             injectionTargets[i] = new InjectionTarget<>(parameterTypes[i], annotations[i]);
         }
         return injectionTargets;
@@ -101,7 +101,7 @@ final class InjectionTarget<T> {
         return null;
     }
 
-    private static boolean allowsNullValue(Annotation[] annotations) {
+    private static boolean isNullable(Annotation[] annotations) {
         for (Annotation a : annotations) {
             Class<? extends Annotation> type = a.annotationType();
             if ("Nullable".equals(type.getSimpleName())) {

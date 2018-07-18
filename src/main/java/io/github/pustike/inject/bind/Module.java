@@ -29,6 +29,7 @@ import io.github.pustike.inject.Injector;
  * Service service = injector.getInstance(Service.class);
  * }</pre>
  */
+@FunctionalInterface
 public interface Module {
     /**
      * Called to create bindings, by using the given {@link Binder binder} during injector creation.

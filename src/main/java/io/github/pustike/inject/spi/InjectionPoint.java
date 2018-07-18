@@ -22,6 +22,7 @@ import io.github.pustike.inject.NoSuchBindingException;
  * Injector uses injection points to inject values into fields and methods/constructor.
  * @param <T> the type of the instance
  */
+@FunctionalInterface
 public interface InjectionPoint<T> {
     /**
      * Inject dependencies into the instance at the injection point using the given injector.

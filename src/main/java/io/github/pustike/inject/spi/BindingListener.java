@@ -21,6 +21,7 @@ import io.github.pustike.inject.BindingKey;
  * Binding listener is invoked after binding of the type is registered into injector. Useful for performing further
  * configurations. For ex: a MVC framework can register it as a controller if @Controller annotation is present.
  */
+@FunctionalInterface
 public interface BindingListener {
     /**
      * Called after the targetClass binding to the key as specified in the module is registered to the injector.

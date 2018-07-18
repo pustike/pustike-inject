@@ -22,6 +22,7 @@ import java.util.EventObject;
  * @param <T> the type of event object being published
  */
 public class Event<T> extends EventObject {
+    private static final long serialVersionUID = 1L;
     private final Object eventContext;
 
     /**

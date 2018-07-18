@@ -17,20 +17,20 @@ Following are some of its key features:
 
 **Documentation:** [Latest javadocs](https://pustike.github.io/pustike-inject/docs/latest/api/)
 
-**Latest Release:** The most recent release is v1.4.1 (2018-04-10).
+**Latest Release:** The most recent release is v1.4.2 (2018-07-18).
 
 To add a dependency using Maven, use the following:
 ```xml
 <dependency>
     <groupId>io.github.pustike</groupId>
     <artifactId>pustike-inject</artifactId>
-    <version>1.4.1</version>
+    <version>1.4.2</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```
 dependencies {
-    compile 'io.github.pustike:pustike-inject:1.4.1'
+    compile 'io.github.pustike:pustike-inject:1.4.2'
 }
 ```
 Or, download the [latest JAR](https://search.maven.org/remote_content?g=io.github.pustike&a=pustike-inject&v=LATEST)
@@ -325,7 +325,7 @@ This is an interface for loading injection points (fields and methods/constructo
     @Override
     public List<InjectionPoint<Object>> getInjectionPoints(Class<?> clazz,
         Function<Class<?>, List<InjectionPoint<Object>>> creator) {
-      return cache.get(clazz);
+      return cache.get(clazz, creator);
     }
 
     @Override

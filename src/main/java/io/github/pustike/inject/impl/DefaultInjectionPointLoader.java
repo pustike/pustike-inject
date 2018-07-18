@@ -29,6 +29,7 @@ import javax.inject.Inject;
 
 import io.github.pustike.inject.spi.InjectionPoint;
 import io.github.pustike.inject.spi.InjectionPointLoader;
+import io.github.pustike.inject.utils.ReflectionUtils;
 
 /**
  * Default Injection Point Loader.
@@ -56,14 +57,14 @@ final class DefaultInjectionPointLoader implements InjectionPointLoader {
         Collection<Integer> visitedMethodHashCodes = new HashSet<>();
         for (Class<?> clazz = targetClass; clazz != null && clazz != Object.class; clazz = clazz.getSuperclass()) {
             int index = 0, staticIndex = 0;
-            for (Field field : clazz.getDeclaredFields()) {
+            for (Field field : ReflectionUtils.getDeclaredFields(clazz)) {
                 if (field.getDeclaredAnnotation(Inject.class) != null) {
                     final int idx = Modifier.isStatic(field.getModifiers()) ? staticIndex++ : index;
                     injectionPointList.add(idx, new FieldInjectionPoint<>(field));
                     index++;
                 }
             }
-            for (Method method : clazz.getDeclaredMethods()) {
+            for (Method method : ReflectionUtils.getDeclaredMethods(clazz)) {
                 int hashCode = computeHashCode(clazz, method);
                 if (!visitedMethodHashCodes.contains(hashCode)) {
                     visitedMethodHashCodes.add(hashCode);
@@ -78,7 +79,7 @@ final class DefaultInjectionPointLoader implements InjectionPointLoader {
         return injectionPointList;
     }
 
-    private static int computeHashCode(Class clazz, Method method) {
+    private static int computeHashCode(Class<?> clazz, Method method) {
         int hashCode = 31 + method.getName().hashCode();
         for (Class<?> parameterType : method.getParameterTypes()) {
             hashCode = 31 * hashCode + parameterType.hashCode();

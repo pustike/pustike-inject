@@ -51,7 +51,7 @@ final class FieldInjectionPoint<T> implements InjectionPoint<T> {
 
     @Override
     public String toString() {
-        return "field:\n" + field.getDeclaringClass().getTypeName() + '.' + field.getName()
-                + " -> " + injectionTarget.getKey();
+        return "field:" + System.lineSeparator() + field.getDeclaringClass().getTypeName() + '.' + field.getName()
+                + " -> " + injectionTarget.getBindingKey();
     }
 }

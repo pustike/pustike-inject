@@ -1,6 +1,12 @@
 Pustike Inject Changes
 ======================
 
+Release v1.4.2 (2018-07-18)
+--------------------------
+* Fields and Methods are scanned for injection points, by sorting them using their name and types.
+* Fixed: Declaring a binding as Eager Singleton should create the instance when injector is configured.
+* Other general improvements.
+
 Release v1.4.1 (2018-04-10)
 --------------------------
 * Improvements and bug fixes.

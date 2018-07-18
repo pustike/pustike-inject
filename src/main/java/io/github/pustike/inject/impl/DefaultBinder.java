@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
-import javax.inject.Singleton;
 
 import io.github.pustike.inject.BindingKey;
 import io.github.pustike.inject.Scope;
@@ -56,9 +55,8 @@ final class DefaultBinder implements Binder {
         defaultScope = Scopes.createPerCallScope();
         // reject binding default scopes to something else, by registering them first!
         annotationScopeMap.put(Scopes.PER_CALL, defaultScope);
-        Scope singletonScope = Scopes.createSingletonScope();
-        annotationScopeMap.put(Scopes.EAGER_SINGLETON, singletonScope);
-        annotationScopeMap.put(Singleton.class.getName(), singletonScope);
+        annotationScopeMap.put(Scopes.SINGLETON, new SingletonScope());
+        annotationScopeMap.put(Scopes.EAGER_SINGLETON, new SingletonScope(true));
     }
 
     void configure(Iterable<Module> modules) {
@@ -183,7 +181,7 @@ final class DefaultBinder implements Binder {
             throw new RuntimeException("@Provides method should not have 'void' as return type : " + method);
         }
         Annotation[] annotations = method.getAnnotations();
-        BindingKey<?> bindingKey = new InjectionTarget<>(returnType, annotations).getKey();
+        BindingKey<?> bindingKey = new InjectionTarget<>(returnType, annotations).getBindingKey();
         bind(bindingKey).toProvider(InstanceProvider.from(method, module)).in(getScope(annotations, defaultScope));
     }
 

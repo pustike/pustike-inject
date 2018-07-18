@@ -13,20 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.pustike.inject.spi;
-
-import io.github.pustike.inject.BindingKey;
-
 /**
- * Listens for new instances created by injector, invoked after its fields and methods are injected. Useful for
- * performing post-injection initialization.
+ * Common Utilities.
  */
-@FunctionalInterface
-public interface InjectionListener {
-    /**
-     * Invoked after fields and methods of the instance ar injected by the injector.
-     * @param bindingKey the binding key configured for this instance
-     * @param instance   the newly created instance after dependency injection
-     */
-    void afterInjection(BindingKey<?> bindingKey, Object instance);
-}
+package io.github.pustike.inject.utils;

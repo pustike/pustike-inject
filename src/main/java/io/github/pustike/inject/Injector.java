@@ -97,7 +97,7 @@ public interface Injector {
     <T> Provider<T> getProvider(BindingKey<T> key) throws NoSuchBindingException;
 
     /**
-     * Injects members into the given instance, as if it where created by the {@link Injector injector} itself.
+     * Injects members into the given instance, as if it where created by the injector itself.
      * In other words, fills fields and invokes methods annotated with @Inject, assuming that a binding is present for
      * those fields, and method parameters.
      * @param instance the instance to which members need to be injected

@@ -159,7 +159,7 @@ public final class BindingKey<T> {
      * @see #hashCode()
      */
     @Override
-    public final boolean equals(Object obj) {
+    public boolean equals(Object obj) {
         if (obj == this) {
             return true;
         }

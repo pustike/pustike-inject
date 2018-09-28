@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016-2017 the original author or authors.
+ * Copyright (C) 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.pustike.inject;
+package io.github.pustike.inject.utils;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
 /**
@@ -34,7 +34,7 @@ import java.util.Arrays;
  * <p>
  * From: commons-lang/src/main/java/org/apache/commons/lang3/AnnotationUtils.java
  */
-abstract class AnnotationUtils {
+public final class AnnotationUtils {
     /**
      * Generate a hash code for the given annotation type with its default attribute values
      * using the algorithm presented in the {@link Annotation#hashCode()} API docs.
@@ -43,14 +43,13 @@ abstract class AnnotationUtils {
      * @throws RuntimeException      if an {@code Exception} is encountered during annotation member access
      * @throws IllegalStateException if an annotation method invocation returns {@code null}
      */
-    static int hashCode(Class<? extends Annotation> annotationType) {
+    public static int hashCode(Class<? extends Annotation> annotationType) {
         int result = 0;
         for (Method method : annotationType.getDeclaredMethods()) {
             if (method.getParameterTypes().length != 0 || method.getReturnType() == void.class) {
                 continue;// continue if the supplied {@code method} is not an annotation attribute method.
             }
             try {
-                makeAccessible(method);
                 Object value = method.getDefaultValue();
                 if (value == null) {
                     throw new IllegalStateException(String.format("Annotation method %s returned null", method));
@@ -81,7 +80,9 @@ abstract class AnnotationUtils {
                 continue;// continue if the supplied {@code method} is not an annotation attribute method.
             }
             try {
-                makeAccessible(method);
+                if (!method.trySetAccessible()) {
+                    throw new InaccessibleObjectException("couldn't enable access to annotation method: " + method);
+                }
                 Object value = method.invoke(annotation);
                 if (value == null) {
                     throw new IllegalStateException(String.format("Annotation method %s returned null", method));
@@ -145,20 +146,6 @@ abstract class AnnotationUtils {
             return Arrays.hashCode((boolean[]) o);
         }
         return Arrays.hashCode((Object[]) o);
-    }
-
-    /**
-     * Make the given method accessible, explicitly setting it accessible if necessary.
-     * The {@code setAccessible(true)} method is only called when actually necessary,
-     * to avoid unnecessary conflicts with a JVM SecurityManager (if active).
-     * @param method the method to make accessible
-     * @see java.lang.reflect.Method#setAccessible
-     */
-    private static void makeAccessible(Method method) {
-        if (!method.isAccessible() && (!Modifier.isPublic(method.getModifiers()) ||
-                !Modifier.isPublic(method.getDeclaringClass().getModifiers()))) {
-            method.setAccessible(true);
-        }
     }
 
     private AnnotationUtils(){

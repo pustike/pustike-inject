@@ -17,6 +17,7 @@ package io.github.pustike.inject.impl;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
+import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -34,8 +35,8 @@ final class ExecutableInjectionPoint<T> implements InjectionPoint<T> {
     ExecutableInjectionPoint(Executable executable) {
         this.executable = executable;
         this.injectionTargets = InjectionTarget.createParameterTargets(executable);
-        if (!executable.isAccessible()) {
-            executable.setAccessible(true);
+        if (!executable.trySetAccessible()) {
+            throw new InaccessibleObjectException("couldn't enable access to " + toString());
         }
     }
 

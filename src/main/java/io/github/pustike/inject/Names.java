@@ -74,9 +74,8 @@ public final class Names {
         }
     }
 
-    private static class NamedImpl implements Named, Serializable {
-        private static final long serialVersionUID = 0;
-        private static final boolean isJava8 = System.getProperty("java.version", "1.8").startsWith("1.8");
+    private static final class NamedImpl implements Named, Serializable {
+        private static final long serialVersionUID = 0L;
         private final String value;
 
         NamedImpl(String value) {
@@ -106,7 +105,7 @@ public final class Names {
         @Override
         public String toString() {
             // Java 9 onwards, annotations with string values quote them
-            return '@' + Named.class.getName() + "(value=" + (isJava8 ? value : '"' + value + '"') + ')';
+            return '@' + Named.class.getName() + "(value=\"" + value + "\")";
         }
 
         @Override

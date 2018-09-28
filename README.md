@@ -12,25 +12,25 @@ Following are some of its key features:
 * Optional dependencies using ```@Nullable``` or ```Optional<T>```
 * BindingListener: useful for performing further configurations
 * Events to allow publish-subscribe style communication between components
-* Only ~55kB in size and no external dependencies
-* It requires Java 8 or higher.
+* Only ~60kB in size and no external dependencies
+* It requires Java 11 or higher.
 
 **Documentation:** [Latest javadocs](https://pustike.github.io/pustike-inject/docs/latest/api/)
 
-**Latest Release:** The most recent release is v1.4.2 (2018-07-18).
+**Latest Release:** The most recent release is v1.5.0 (2018-09-28).
 
 To add a dependency using Maven, use the following:
 ```xml
 <dependency>
     <groupId>io.github.pustike</groupId>
     <artifactId>pustike-inject</artifactId>
-    <version>1.4.2</version>
+    <version>1.5.0</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```
 dependencies {
-    compile 'io.github.pustike:pustike-inject:1.4.2'
+    compile 'io.github.pustike:pustike-inject:1.5.0'
 }
 ```
 Or, download the [latest JAR](https://search.maven.org/remote_content?g=io.github.pustike&a=pustike-inject&v=LATEST)

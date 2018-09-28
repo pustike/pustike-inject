@@ -1,6 +1,13 @@
 Pustike Inject Changes
 ======================
 
+Release v1.5.0 (2018-09-28)
+--------------------------
+* Added ```module-info.java``` and so it requires Java 11 or higher.
+* Moved ```AnnotationUtils``` to ```utils``` package and this is not exported by the module.
+* Use ```AccessibleObject#trySetAccessible``` instead of ```isAccessible``` as this is deprecated.
+* Changed the build tool from Gradle to Maven
+
 Release v1.4.2 (2018-07-18)
 --------------------------
 * Fields and Methods are scanned for injection points, by sorting them using their name and types.

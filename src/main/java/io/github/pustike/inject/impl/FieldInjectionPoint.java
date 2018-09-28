@@ -16,6 +16,7 @@
 package io.github.pustike.inject.impl;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.Modifier;
 
 import io.github.pustike.inject.Injector;
@@ -30,8 +31,8 @@ final class FieldInjectionPoint<T> implements InjectionPoint<T> {
     FieldInjectionPoint(Field field) {
         this.field = field;
         this.injectionTarget = new InjectionTarget<>(field.getGenericType(), field.getAnnotations());
-        if (!field.isAccessible()) {
-            field.setAccessible(true);
+        if (!field.trySetAccessible()) {
+            throw new InaccessibleObjectException("couldn't enable access to " + toString());
         }
     }
 

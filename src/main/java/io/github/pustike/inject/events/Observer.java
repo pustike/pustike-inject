@@ -15,6 +15,7 @@
  */
 package io.github.pustike.inject.events;
 
+import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.Method;
 
 import io.github.pustike.inject.BindingKey;
@@ -26,8 +27,8 @@ final class Observer {
     Observer(BindingKey<?> bindingKey, Method method) {
         this.bindingKey = bindingKey;
         this.method = method;
-        if (!method.isAccessible()) {
-            method.setAccessible(true);
+        if (!method.trySetAccessible()) {
+            throw new InaccessibleObjectException("couldn't enable access to observer method: " + method);
         }
     }
 

@@ -18,19 +18,19 @@ package io.github.pustike.inject.events;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import io.github.pustike.inject.Injector;
 import io.github.pustike.inject.Injectors;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class EventBusTest {
-    private Injector injector;
+    private static Injector injector;
 
-    @Before
-    public void setUp() {
+    @BeforeAll
+    public static void setUp() {
         injector = Injectors.create(EventBus.createModule(), binder -> {
             binder.setDefaultScope(Singleton.class);
             binder.bind(OrderService.class);
@@ -38,8 +38,8 @@ public class EventBusTest {
         });
     }
 
-    @After
-    public void tearDown() {
+    @AfterAll
+    public static void tearDown() {
         injector.getIfPresent(EventBus.class).ifPresent(EventBus::close);
         Injectors.dispose(injector);
     }
@@ -50,9 +50,9 @@ public class EventBusTest {
         OrderService orderService = injector.getInstance(OrderService.class);
         DeliveryService deliveryService = injector.getInstance(DeliveryService.class);
         orderService.createOrder(order);
-        Assert.assertEquals(1, deliveryService.eventCount);
+        assertEquals(1, deliveryService.eventCount);
         orderService.confirmOrder(order);
-        Assert.assertEquals(2, deliveryService.eventCount);
+        assertEquals(2, deliveryService.eventCount);
     }
 
     public static class OrderService {

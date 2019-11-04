@@ -25,13 +25,13 @@ import java.util.Map;
 import java.util.Properties;
 import javax.inject.Named;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.github.pustike.inject.bind.Module;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * This class is borrowed from Guice project's
@@ -52,9 +52,9 @@ public class NamesTest {
     private static void assertEqualsBothWays(Object expected, Object actual) {
         assertNotNull(expected);
         assertNotNull(actual);
-        assertEquals("expected.equals(actual)", actual, expected);
-        assertEquals("actual.equals(expected)", expected, actual);
-        assertEquals("hashCode", expected.hashCode(), actual.hashCode());
+        assertEquals(expected, actual, "expected.equals(actual)");
+        assertEquals(actual, expected, "actual.equals(expected)");
+        assertEquals(expected.hashCode(), actual.hashCode(), "hashCode");
     }
 
     /**
@@ -137,7 +137,7 @@ public class NamesTest {
 
         try {
             injector.getInstance(BindingKey.of(String.class, "Calgary"));
-            Assert.fail();
+            fail();
         } catch (RuntimeException expected) {
         }
     }

@@ -15,7 +15,6 @@
  */
 package io.github.pustike.inject.impl;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -142,7 +141,7 @@ public final class DefaultInjector implements Injector {
 
     @Override
     public Injector createChildInjector(Module... modules) {
-        return createChildInjector(Arrays.asList(modules));
+        return createChildInjector(List.of(modules));
     }
 
     @Override

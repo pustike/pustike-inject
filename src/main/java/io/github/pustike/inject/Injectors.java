@@ -15,7 +15,7 @@
  */
 package io.github.pustike.inject;
 
-import java.util.Arrays;
+import java.util.List;
 
 import io.github.pustike.inject.bind.Module;
 import io.github.pustike.inject.impl.DefaultInjector;
@@ -33,7 +33,7 @@ public final class Injectors {
      * @see #create(Iterable)
      */
     public static Injector create(Module... modules) {
-        return DefaultInjector.create(null, Arrays.asList(modules));
+        return DefaultInjector.create(null, List.of(modules));
     }
 
     /**

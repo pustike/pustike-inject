@@ -18,7 +18,7 @@
  * <i>Dependency Injection for Java</i> specification.
  */
 module io.github.pustike.inject {
-    requires java.inject;
+    requires transitive java.inject;
 
     exports io.github.pustike.inject;
     exports io.github.pustike.inject.bind;

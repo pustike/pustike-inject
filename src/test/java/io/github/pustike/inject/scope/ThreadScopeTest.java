@@ -20,15 +20,15 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import javax.inject.Inject;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.github.pustike.inject.Injector;
 import io.github.pustike.inject.Injectors;
 import io.github.pustike.inject.bind.Module;
 
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Thread Scope Tests.
@@ -70,7 +70,7 @@ public class ThreadScopeTest {
         try {
             done.await();
         } catch (InterruptedException e) {
-            Assert.fail("unexpected thread interruption");
+            fail("unexpected thread interruption");
         }
 
         assertNotSame(someClass, innerSomeClass[0]);
@@ -92,7 +92,7 @@ public class ThreadScopeTest {
         try {
             done.await();
         } catch (InterruptedException e) {
-            Assert.fail("unexpected thread interruption");
+            fail("unexpected thread interruption");
         }
     }
 }

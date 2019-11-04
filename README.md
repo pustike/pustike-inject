@@ -15,9 +15,9 @@ Following are some of its key features:
 * Only ~60kB in size and no external dependencies
 * It requires Java 11 or higher.
 
-**Documentation:** [Latest javadocs](https://pustike.github.io/pustike-inject/docs/latest/api/)
+**Documentation:** Latest javadocs is available [here][Javadocs].
 
-**Latest Release:** The most recent release is v1.5.0 (2018-09-28).
+**Release:** The most recent release is v1.5.0 (2018-09-28).
 
 To add a dependency using Maven, use the following:
 ```xml

@@ -1,6 +1,12 @@
 Pustike Inject Changes
 ======================
 
+Release v1.5.1 (2019-xx-xx)
+--------------------------
+* Make javax inject api a transitive dependency 
+* Updated pustike maven parent version to 0.1.3
+* Other general improvements
+
 Release v1.5.0 (2018-09-28)
 --------------------------
 * Added ```module-info.java``` and so it requires Java 11 or higher.

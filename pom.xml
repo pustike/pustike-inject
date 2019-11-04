@@ -21,11 +21,11 @@
     <parent>
         <groupId>io.github.pustike</groupId>
         <artifactId>pustike-maven-parent</artifactId>
-        <version>0.1.0</version>
+        <version>0.1.3</version>
     </parent>
 
     <artifactId>pustike-inject</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1-SNAPSHOT</version>
 
     <name>Pustike Inject</name>
     <description>A JSR-330 spec compliant dependency injection framework</description>
@@ -45,27 +45,15 @@
         </dependency>
     </dependencies>
     <build>
-        <defaultGoal>package</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
-                    <overview>${basedir}/src/overview.html</overview>
-                    <excludePackageNames>*.impl:*.utils</excludePackageNames>
                     <links>
-                        <link>https://docs.oracle.com/javase/10/docs/api</link>
-                        <!--<link>https://docs.oracle.com/en/java/javase/11/docs/api</link>-->
-                        <link>https://javax-inject.github.io/javax-inject/api</link>
+                        <link>https://static.javadoc.io/io.github.pustike/javax.inject/1.1.0</link>
                     </links>
                 </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.ow2.asm</groupId>
-                        <artifactId>asm</artifactId>
-                        <version>6.2</version>
-                    </dependency>
-                </dependencies>
             </plugin>
         </plugins>
     </build>

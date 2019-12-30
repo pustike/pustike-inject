@@ -1,4 +1,4 @@
-Pustike Inject    [![][Maven Central img]][Maven Central] [![][Javadocs img]][Javadocs] [![][license img]][license] [![][GitHub Actions Status]]
+Pustike Inject    [![][Maven Central img]][Maven Central] [![][Javadocs img]][Javadocs] [![][license img]][license] ![][GitHub Actions Status]
 ==============
 Pustike Inject is a simple dependency injection framework that implements the [JSR-330](https://javax-inject.github.io/javax-inject) specification.
 

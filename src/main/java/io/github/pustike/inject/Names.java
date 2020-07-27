@@ -76,6 +76,7 @@ public final class Names {
 
     private static final class NamedImpl implements Named, Serializable {
         private static final long serialVersionUID = 0L;
+        private static final boolean isJava11 = System.getProperty("java.version").startsWith("11");
         private final String value;
 
         NamedImpl(String value) {
@@ -104,8 +105,8 @@ public final class Names {
 
         @Override
         public String toString() {
-            // Java 9 onwards, annotations with string values quote them
-            return '@' + Named.class.getName() + "(\"" + value + "\")";
+            // annotation's toString has "value=" in Java 11 but not in Java 14!
+            return '@' + Named.class.getName() + '(' + (isJava11 ? "value=" : "") + "\"" + value + "\")";
         }
 
         @Override

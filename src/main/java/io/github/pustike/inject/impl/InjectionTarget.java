@@ -22,8 +22,8 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import javax.inject.Provider;
-import javax.inject.Qualifier;
+import jakarta.inject.Provider;
+import jakarta.inject.Qualifier;
 
 import io.github.pustike.inject.BindingKey;
 import io.github.pustike.inject.Injector;

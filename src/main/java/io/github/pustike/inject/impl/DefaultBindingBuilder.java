@@ -22,7 +22,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 import io.github.pustike.inject.BindingKey;
 import io.github.pustike.inject.Names;

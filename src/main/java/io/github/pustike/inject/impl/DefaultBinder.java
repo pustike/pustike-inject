@@ -134,7 +134,7 @@ final class DefaultBinder implements Binder {
 
     private static Class<? extends Annotation> getScopeAnnotation(Annotation[] annotations) {
         for (Annotation annotation : annotations) {
-            if (annotation.annotationType().isAnnotationPresent(javax.inject.Scope.class)) {
+            if (annotation.annotationType().isAnnotationPresent(jakarta.inject.Scope.class)) {
                 return annotation.annotationType();
             }
         }

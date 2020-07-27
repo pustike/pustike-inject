@@ -85,11 +85,7 @@ final class ObserverRegistry {
         Iterable<Method> observerMethods = findObserverMethods(targetClass);
         for (Method method : observerMethods) {
             int eventHashCode = computeParameterHashCode(method);
-            List<Observer> observerList = eventObserversMap.get(eventHashCode);
-            if (observerList == null) {
-                observerList = new ArrayList<>();
-                eventObserversMap.put(eventHashCode, observerList);
-            }
+            List<Observer> observerList = eventObserversMap.computeIfAbsent(eventHashCode, k -> new ArrayList<>());
             observerList.add(new Observer(bindingKey, method));
         }
     }

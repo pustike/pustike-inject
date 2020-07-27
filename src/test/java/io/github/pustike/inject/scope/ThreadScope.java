@@ -17,7 +17,7 @@ package io.github.pustike.inject.scope;
 
 import java.util.HashMap;
 import java.util.Map;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 import io.github.pustike.inject.BindingKey;
 import io.github.pustike.inject.Scope;

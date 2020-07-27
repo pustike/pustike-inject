@@ -18,7 +18,7 @@ package io.github.pustike.inject.events;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 import java.util.Objects;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import io.github.pustike.inject.Injector;
 import io.github.pustike.inject.bind.Module;
@@ -51,7 +51,7 @@ public final class EventBus {
     }
 
     /**
-     * Create a new {@link Module} which binds the EventBus in {@link javax.inject.Singleton} scope. And adds a
+     * Create a new {@link Module} which binds the EventBus in {@link jakarta.inject.Singleton} scope. And adds a
      * {@link io.github.pustike.inject.spi.BindingListener} which visits on all types to find and register methods
      * annotated with {@link Observes}.
      * @return the new event bus module

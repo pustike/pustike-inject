@@ -15,8 +15,8 @@
  */
 package io.github.pustike.inject.impl;
 
-import javax.inject.Provider;
-import javax.inject.Singleton;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 
 import io.github.pustike.inject.BindingKey;
 import io.github.pustike.inject.Scope;

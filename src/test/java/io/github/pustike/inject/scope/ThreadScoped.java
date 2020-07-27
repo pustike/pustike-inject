@@ -20,7 +20,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import javax.inject.Scope;
+import jakarta.inject.Scope;
 
 /**
  * Indicates that an object needs to be thread scoped.

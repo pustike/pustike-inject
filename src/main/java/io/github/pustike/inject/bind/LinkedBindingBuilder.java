@@ -17,7 +17,7 @@ package io.github.pustike.inject.bind;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 /**
  * A binding builder, which allows to specify a bindings target: A target is the value, that gets injected, if the

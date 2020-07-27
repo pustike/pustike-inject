@@ -35,8 +35,8 @@ import junit.framework.TestResult;
 import junit.textui.TestRunner;
 
 /**
- * Test that runs <a href="https://javax-inject.github.io/javax-inject" target="_blank"> JSR-330</a>
- * (Dependency Injection for Java) TCK (Technology Compatibility Kit).
+ * Test that runs <a href="https://github.com/eclipse-ee4j/injection-api" target="_blank"> JSR-330</a>
+ * (Jakarta Dependency Injection) TCK (Technology Compatibility Kit).
  * </p>
  *
  * <p>This class follows

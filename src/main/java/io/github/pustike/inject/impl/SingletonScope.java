@@ -16,7 +16,7 @@
 package io.github.pustike.inject.impl;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 import io.github.pustike.inject.BindingKey;
 import io.github.pustike.inject.Scope;

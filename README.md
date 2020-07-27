@@ -1,6 +1,6 @@
 Pustike Inject    [![][Maven Central img]][Maven Central] [![][Javadocs img]][Javadocs] [![][license img]][license] ![][GitHub Actions Status]
 ==============
-Pustike Inject is a simple dependency injection framework that implements the [JSR-330](https://javax-inject.github.io/javax-inject) specification.
+Pustike Inject is a simple dependency injection framework that implements the [JSR-330](https://github.com/eclipse-ee4j/injection-api) specification.
 
 Following are some of its key features:
 * Programmatic configuration in plain Java using EDSL similar to that of [Guice Binder](https://google.github.io/guice/api-docs/latest/javadoc/com/google/inject/Binder.html).
@@ -12,7 +12,7 @@ Following are some of its key features:
 * Optional dependencies using ```@Nullable``` or ```Optional<T>```
 * BindingListener: useful for performing further configurations
 * Events to allow publish-subscribe style communication between components
-* Only ~60kB in size and no external dependencies
+* Only ~60kB in size and depends on ```injection-api```
 * It requires Java 11 or higher.
 
 **Documentation:** Latest javadocs is available [here][Javadocs].
@@ -26,12 +26,6 @@ To add a dependency using Maven, use the following:
     <artifactId>pustike-inject</artifactId>
     <version>1.5.0</version>
 </dependency>
-```
-To add a dependency using Gradle:
-```
-dependencies {
-    compile 'io.github.pustike:pustike-inject:1.5.0'
-}
 ```
 Or, download the [latest JAR](https://search.maven.org/remote_content?g=io.github.pustike&a=pustike-inject&v=LATEST)
 
@@ -51,7 +45,7 @@ Injector injector = Injectors.create(module);
 Service service = injector.getInstance(Service.class);
 ```
 * **Hierarchical Injector**
-Injector can create a child injector that delegates all requests for bindings, that are not found, to it's parent injector. All bindings in the parent injector are visible to the child, but elements of the child injector are not visible to its parent.
+Injector can create a child injector that delegates all requests for bindings, that are not found, to its parent injector. All bindings in the parent injector are visible to the child, but elements of the child injector are not visible to its parent.
 ```java
     Injector parentInjector = Injectors.create(new ParentModule1(), new ParentModule2());
     Injector childInjector = parentInjector.createChildInjector(new ChildModule1(), new ChildModule2());
@@ -190,7 +184,7 @@ Annotations can be used to create different lists of the same element type. Each
 * **@Nullable support**: By default, if an ```@Inject``` annotated dependency (field or parameter), is not present in 
 configured binding, a ```NoSuchBindingException``` will be thrown.  If ```null``` value is to be allowed, then 
 the field or parameter should be annotated with ```@Nullable```. Injector recognizes any @Nullable annotation 
-(by it's simple name), like edu.umd.cs.findbugs.annotations.Nullable or javax.annotation.Nullable. For ex:
+(by its simple name), like edu.umd.cs.findbugs.annotations.Nullable or javax.annotation.Nullable. For ex:
     ```java
     public class Computer {
         private final Soundcard soundcard;

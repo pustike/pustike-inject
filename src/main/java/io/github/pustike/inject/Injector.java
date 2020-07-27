@@ -16,7 +16,7 @@
 package io.github.pustike.inject;
 
 import java.util.Optional;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 import io.github.pustike.inject.bind.Module;
 
@@ -113,7 +113,7 @@ public interface Injector {
     Injector getParent();
 
     /**
-     * Returns a new injector that delegates all requests for bindings that are not found, to it's parent injector.
+     * Returns a new injector that delegates all requests for bindings that are not found, to its parent injector.
      * All bindings in the parent injector are visible to the child, but elements of the child injector are
      * not visible to its parent.
      * @param modules an array of modules specifying type bindings
@@ -124,7 +124,7 @@ public interface Injector {
     Injector createChildInjector(Module... modules);
 
     /**
-     * Returns a new injector that delegates all requests for bindings that are not found, to it's parent injector.
+     * Returns a new injector that delegates all requests for bindings that are not found, to its parent injector.
      * All bindings in the parent injector are visible to the child, but elements of the child injector are
      * not visible to its parent.
      * @param modules an iterable (list) of modules specifying type bindings

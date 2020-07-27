@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 /**
- * Implements <a href="https://javax-inject.github.io/javax-inject" target="_blank"> JSR-330</a> :
- * <i>Dependency Injection for Java</i> specification.
+ * Implements <a href="https://github.com/eclipse-ee4j/injection-api" target="_blank"> JSR-330</a> :
+ * <i>Jakarta Dependency Injection</i> specification.
  */
 module io.github.pustike.inject {
-    requires transitive java.inject;
+    requires transitive jakarta.inject;
 
     exports io.github.pustike.inject;
     exports io.github.pustike.inject.bind;

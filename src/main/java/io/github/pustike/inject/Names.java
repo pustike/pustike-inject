@@ -21,7 +21,7 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import io.github.pustike.inject.bind.Binder;
 
@@ -105,7 +105,7 @@ public final class Names {
         @Override
         public String toString() {
             // Java 9 onwards, annotations with string values quote them
-            return '@' + Named.class.getName() + "(value=\"" + value + "\")";
+            return '@' + Named.class.getName() + "(\"" + value + "\")";
         }
 
         @Override

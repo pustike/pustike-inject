@@ -21,7 +21,7 @@ import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import io.github.pustike.inject.Injector;
 import io.github.pustike.inject.NoSuchBindingException;

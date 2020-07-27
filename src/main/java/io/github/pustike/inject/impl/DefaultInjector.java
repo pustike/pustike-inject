@@ -24,7 +24,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 import io.github.pustike.inject.BindingKey;
 import io.github.pustike.inject.Injector;
@@ -201,5 +201,6 @@ public final class DefaultInjector implements Injector {
         keyBindingMap.clear();
         injectionPointLoader.invalidateAll();
         injectionListenerMatcherMap.clear();
+        parentInjector = null;
     }
 }

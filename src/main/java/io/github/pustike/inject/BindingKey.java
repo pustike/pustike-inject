@@ -18,8 +18,8 @@ package io.github.pustike.inject;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Objects;
-import javax.inject.Named;
-import javax.inject.Provider;
+import jakarta.inject.Named;
+import jakarta.inject.Provider;
 
 import io.github.pustike.inject.utils.AnnotationUtils;
 
@@ -106,7 +106,7 @@ public final class BindingKey<T> {
     }
 
     /**
-     * Create a new key to indicate that this key matches to a {@link javax.inject.Provider} of the type.
+     * Create a new key to indicate that this key matches to a {@link jakarta.inject.Provider} of the type.
      * <p>
      * Note: this key can only be used to get the instance from Injector, but not during binding.
      * @return a new key that matches to the provider of this binding type and qualifier
@@ -147,7 +147,7 @@ public final class BindingKey<T> {
     }
 
     /**
-     * Returns true if this key is of {@link javax.inject.Provider} type.
+     * Returns true if this key is of {@link jakarta.inject.Provider} type.
      * @return true if this key is of provider type.
      */
     public boolean isProviderKey() {

@@ -25,7 +25,7 @@ import java.lang.annotation.Annotation;
 public interface AnnotatedBindingBuilder<T> extends LinkedBindingBuilder<T> {
     /**
      * Specifies that the binding can only be used for injection, if a field is annotated with
-     * {@link javax.inject.Named} and has the given name.
+     * {@link jakarta.inject.Named} and has the given name.
      *
      * For ex: with the following binding specification:
      * <pre>{@code binder.bind(Tire.class).named("spare").to(SpareTire.class); }</pre>

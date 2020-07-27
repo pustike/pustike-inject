@@ -15,7 +15,7 @@
  */
 package io.github.pustike.inject;
 
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 /**
  * Interface to implement custom scopes.

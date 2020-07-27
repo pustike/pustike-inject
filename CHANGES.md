@@ -1,10 +1,13 @@
 Pustike Inject Changes
 ======================
 
-Release v1.5.1 (2019-xx-xx)
+Release v2.0.0 (2020-xx-xx)
 --------------------------
-* Make javax inject api a transitive dependency 
-* Updated pustike maven parent version to 0.1.3
+* Migrate to Injection API released as part of Jakarta EE9
+* Make ```jakarta.inject``` module a transitive dependency 
+* Change ```toString()``` implementation of ```@Named``` annotation to remove `value=`
+  i.e. ```@jakarta.inject.Named("foo")``` instead of ```@jakarta.inject.Named(value="foo")```.
+* Updated pustike maven parent version to 0.1.4
 * Other general improvements
 
 Release v1.5.0 (2018-09-28)

@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import io.github.pustike.inject.spi.InjectionPoint;
 import io.github.pustike.inject.spi.InjectionPointLoader;

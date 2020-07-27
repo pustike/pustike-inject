@@ -18,7 +18,7 @@ package io.github.pustike.inject.impl;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 import io.github.pustike.inject.Injector;
 import io.github.pustike.inject.spi.InjectionPoint;

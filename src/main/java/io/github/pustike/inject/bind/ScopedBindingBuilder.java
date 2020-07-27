@@ -22,8 +22,8 @@ import io.github.pustike.inject.Scope;
 
 /**
  * A binding builder, which allows to specify the scope of binding.
- * @see javax.inject.Scope
- * @see javax.inject.Singleton
+ * @see jakarta.inject.Scope
+ * @see jakarta.inject.Singleton
  */
 public interface ScopedBindingBuilder {
     /**
@@ -38,7 +38,7 @@ public interface ScopedBindingBuilder {
      * }</pre>
      * @param scopeAnnotation the scope annotation, which should be already registered to the binder
      * @see Binder#bindScope(Class, Scope)
-     * @see javax.inject.Singleton
+     * @see jakarta.inject.Singleton
      */
     void in(Class<? extends Annotation> scopeAnnotation);
 
@@ -64,7 +64,7 @@ public interface ScopedBindingBuilder {
     /**
      * Instructs the {@link Injector} to lazily initialize (only when requested), this singleton-scoped binding.
      * For ex: <pre>{@code binder.bind(Service.class).to(ServiceImpl.class).asLazySingleton(); }</pre>
-     * @see javax.inject.Singleton
+     * @see jakarta.inject.Singleton
      */
     void asLazySingleton();
 }

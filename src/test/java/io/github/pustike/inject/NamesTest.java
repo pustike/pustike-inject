@@ -23,7 +23,7 @@ import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.junit.jupiter.api.Test;
 

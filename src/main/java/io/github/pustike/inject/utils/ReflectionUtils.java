@@ -52,7 +52,7 @@ public final class ReflectionUtils {
             Iterator<T> left = o1.iterator(), right = o2.iterator();
             while (left.hasNext()) {
                 if (!right.hasNext()) {
-                    return 1; // because it's longer
+                    return 1; // because it is longer
                 }
                 int result = elementComparator.compare(left.next(), right.next());
                 if (result != 0) {
@@ -60,7 +60,7 @@ public final class ReflectionUtils {
                 }
             }
             if (right.hasNext()) {
-                return -1; // because it's longer
+                return -1; // because it is longer
             }
             return 0;
         };

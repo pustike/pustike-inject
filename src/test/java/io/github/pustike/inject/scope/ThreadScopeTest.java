@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 
 import io.github.pustike.inject.Injector;
 import io.github.pustike.inject.Injectors;
-import io.github.pustike.inject.bind.Module;
 
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -41,7 +40,7 @@ public class ThreadScopeTest {
         }
     }
 
-    private static final Injector injector = Injectors.create((Module) binder -> {
+    private static final Injector injector = Injectors.create(binder -> {
         ThreadScope threadScope = new ThreadScope();
         binder.bindScope(ThreadScoped.class, threadScope);
         binder.bind(ThreadScope.class).toInstance(threadScope);
@@ -52,7 +51,7 @@ public class ThreadScopeTest {
     public void testReset() {
         SomeClass someClass = injector.getInstance(SomeClass.class);
         assertSame(someClass, injector.getInstance(SomeClass.class));
-        injector.getInstance(ThreadScope.class).clearContext();
+        ThreadScope.clearContext();
         assertNotSame(someClass, injector.getInstance(SomeClass.class));
     }
 
@@ -84,7 +83,7 @@ public class ThreadScopeTest {
             final int index = i;
             executor.execute(() -> {
                 assertSame(injector.getInstance(SomeClass.class), injector.getInstance(SomeClass.class));
-                injector.getInstance(ThreadScope.class).clearContext();
+                ThreadScope.clearContext();
                 if (index == 199)
                     done.countDown();
             });

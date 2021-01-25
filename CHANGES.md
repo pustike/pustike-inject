@@ -1,9 +1,9 @@
 Pustike Inject Changes
 ======================
 
-Release v2.0.0 (2020-xx-xx)
+Release v2.0.0 (2021-01-25)
 --------------------------
-* Migrate to Injection API released as part of Jakarta EE9
+* Migrate to Injection API 2.0.0 released as part of Jakarta EE9
 * Make ```jakarta.inject``` module a transitive dependency 
 * Change ```toString()``` implementation of ```@Named``` annotation to remove `value=`
   i.e. ```@jakarta.inject.Named("foo")``` instead of ```@jakarta.inject.Named(value="foo")```.

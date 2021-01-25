@@ -17,14 +17,14 @@ Following are some of its key features:
 
 **Documentation:** Latest javadocs is available [here][Javadocs].
 
-**Release:** The most recent release is v1.5.0 (2018-09-28).
+**Release:** The most recent release is v2.0.0 (2021-01-25).
 
 To add a dependency using Maven, use the following:
 ```xml
 <dependency>
     <groupId>io.github.pustike</groupId>
     <artifactId>pustike-inject</artifactId>
-    <version>1.5.0</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 Or, download the [latest JAR](https://search.maven.org/remote_content?g=io.github.pustike&a=pustike-inject&v=LATEST)

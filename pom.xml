@@ -51,7 +51,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
                     <links>
-                        <link>https://static.javadoc.io/jakarta.inject/jakarta.inject-api/2.0.0</link>
+                        <link>https://static.javadoc.io/jakarta.inject/jakarta.inject-api/2.0.1</link>
                     </links>
                 </configuration>
             </plugin>

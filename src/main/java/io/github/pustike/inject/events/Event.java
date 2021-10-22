@@ -23,6 +23,7 @@ import java.util.EventObject;
  */
 public class Event<T> extends EventObject {
     private static final long serialVersionUID = 1L;
+    /** The event context value, can be null */
     private final Object eventContext;
 
     /**

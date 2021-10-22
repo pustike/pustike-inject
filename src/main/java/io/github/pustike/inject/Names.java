@@ -74,6 +74,9 @@ public final class Names {
         }
     }
 
+    /**
+     * Implementation of {@link jakarta.inject.Named} to create instances of this annotation.
+     */
     private static final class NamedImpl implements Named, Serializable {
         private static final long serialVersionUID = 0L;
         private static final boolean isJava11 = System.getProperty("java.version").startsWith("11");

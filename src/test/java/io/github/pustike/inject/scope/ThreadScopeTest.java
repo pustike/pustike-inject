@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Thread Scope Tests.
- * Source: https://github.com/google/guice/issues/114
+ * Source: <a href="https://github.com/google/guice/issues/114">Guice issue #114</a>
  */
 public class ThreadScopeTest {
     public static class SomeClass {

@@ -1,6 +1,6 @@
 Pustike Inject    [![][Maven Central img]][Maven Central] [![][Javadocs img]][Javadocs] [![][license img]][license] ![][GitHub Actions Status]
 ==============
-Pustike Inject is a simple dependency injection framework that implements the [JSR-330](https://github.com/eclipse-ee4j/injection-api) specification.
+Pustike Inject is a simple dependency injection framework that implements the [JSR-330](https://github.com/jakartaee/inject) specification.
 
 Following are some of its key features:
 * Programmatic configuration in plain Java using EDSL similar to that of [Guice Binder](https://google.github.io/guice/api-docs/latest/javadoc/com/google/inject/Binder.html).

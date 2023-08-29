@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * Implements <a href="https://github.com/eclipse-ee4j/injection-api" target="_blank"> JSR-330</a> :
+ * Implements <a href="https://github.com/jakartaee/inject" target="_blank"> JSR-330</a> :
  * <i>Jakarta Dependency Injection</i> specification.
  */
 module io.github.pustike.inject {

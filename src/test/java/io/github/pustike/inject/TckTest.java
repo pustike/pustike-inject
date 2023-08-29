@@ -27,15 +27,16 @@ import org.atinject.tck.auto.Tire;
 import org.atinject.tck.auto.V8Engine;
 import org.atinject.tck.auto.accessories.Cupholder;
 import org.atinject.tck.auto.accessories.SpareTire;
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import io.github.pustike.inject.bind.Module;
 import junit.framework.TestResult;
 import junit.textui.TestRunner;
 
 /**
- * Test that runs <a href="https://github.com/eclipse-ee4j/injection-api" target="_blank"> JSR-330</a>
+ * Test that runs <a href="https://github.com/jakartaee/inject" target="_blank"> JSR-330</a>
  * (Jakarta Dependency Injection) TCK (Technology Compatibility Kit).
  * </p>
  *
@@ -61,6 +62,6 @@ public class TckTest {
         Injector injector = Injectors.create(module);
         Car car = injector.getInstance(Car.class);
         TestResult testResult = TestRunner.run(Tck.testsFor(car, true, true));
-        Assert.assertTrue(testResult.wasSuccessful());
+        Assertions.assertTrue(testResult.wasSuccessful());
     }
 }

@@ -60,8 +60,8 @@ public final class Names {
     }
 
     /**
-     * Creates a constant binding to {@code @Named(key)} for each property. This
-     * method binds all properties including those inherited from {@link Properties#defaults defaults}.
+     * Creates a constant binding to {@code @Named(key)} for each property.
+     * This method binds all properties including those inherited from {@link Properties#defaults defaults}.
      * @param binder     the binder used to create bindings
      * @param properties the properties object with [key, value] entries to bind
      */
@@ -99,11 +99,7 @@ public final class Names {
 
         @Override
         public boolean equals(Object o) {
-            if (!(o instanceof Named)) {
-                return false;
-            }
-            Named other = (Named) o;
-            return value.equals(other.value());
+            return o instanceof Named && value.equals(((Named) o).value());
         }
 
         @Override
